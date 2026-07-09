@@ -1,0 +1,40 @@
+{
+  "generated_at": "2026-07-09",
+  "jurisdiction": "tz",
+  "focus": "Tanzania mainland tax-benefit surface: individual income tax (PAYE and accounts bases), presumptive income tax, PSSSF/NSSF pension contributions, NHIF health contributions, VAT, excise duties, and the TASAF Productive Social Safety Net transfers.",
+  "purpose": "Household-level comparison-oracle and supporting-source references for Tanzania Axiom coverage. None of these are legal authority.",
+  "oracle_scope": "A RuleSpec oracle must be an executable, pinned external calculator that accepts household-level inputs and returns household-level tax-benefit outputs comparable to Axiom outputs. Aggregate simulators, distributional reports, parameter documentation, and public model summaries are supporting references only, not oracles.",
+  "oracles": [
+    {
+      "id": "tazmod",
+      "name": "TAZMOD",
+      "url": "https://www.wider.unu.edu/project/southmod-simulating-tax-and-benefit-policies-development",
+      "local_path": "~/.axiom/oracles/southmod/bundle/SOUTHMOD_A4.0 (licensed, non-redistributable; never committed)",
+      "commit": null,
+      "model": "SOUTHMOD_A4.0",
+      "dataset": "tz_2012_a5, tz_2018_a9 (HBS-based input microdata shipped in the bundle)",
+      "role": "Household-level tax-benefit comparison oracle for mainland Tanzania. TAZMOD is the SOUTHMOD tax-benefit microsimulation model for Tanzania (UNU-WIDER). Built on the EUROMOD platform; systems TZ_2012-TZ_2023 (Zanzibar has its own model, ZANMOD scope ZN, out of this repository's scope).",
+      "coverage": [
+        "individual_income_tax",
+        "paye",
+        "presumptive_income_tax",
+        "psssf_contributions",
+        "nssf_contributions",
+        "nhif_contributions",
+        "vat",
+        "excise_duties",
+        "pssn_cash_transfers",
+        "household_disposable_income"
+      ],
+      "authority": "bundle_in_hand_wiring_pending",
+      "availability_check": {
+        "checked_at": "2026-07-09",
+        "status": "bundle_in_hand_wiring_pending",
+        "detail": "The licensed SOUTHMOD A4.0 bundle held under the Adhesion Agreement for the Ghana lane also carries TAZMOD with systems TZ_2012-TZ_2023 and two bundled HBS-based input datasets, so per-case and dataset-backed probes need no further data application (personal links; non-redistributable; the bundle and datasets must never be committed or shared). The EUROMOD-engine runtime is proven from the Ghana lane (x86_64 py3.12 venv + euromod 0.2.18 + x64 .NET 10), and the runner-executed comparison harness is proven from the Rwanda lane (scripts/run_comparison.py with euromod_annualize_outputs for Month-period modules). The latest system is TZ_2023 - the rules in force on 30 June 2023 (Finance Act 2022 state) - which is the validation year for this repository. The TZ_2023 policy-surface inventory (27 policies, 9 active instruments) is recorded at ~/.axiom/oracles/southmod/harness-tz/tazmod/inventory_result.json.",
+        "systems": "TZ_2012-TZ_2023",
+        "validation_system": "TZ_2023 (rules in force 30 June 2023)"
+      },
+      "bundle_sha256": "741855bd23cf4c4a0a61a80def06a078fd3f0551a452b5853a2e46c7e2486a5f"
+    }
+  ]
+}
