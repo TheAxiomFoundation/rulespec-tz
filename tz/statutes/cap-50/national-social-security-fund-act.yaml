@@ -20,7 +20,7 @@ rules:
           corpus_citation_path: tz/statute/cap-50/national-social-security-fund-act
           excerpt: Ten cents for every complete shilling of wages
   versions:
-  - effective_from: '2023-11-30'
+  - effective_from: '2018-08-01'
     formula: '0.10'
 - name: statutory_contribution_rate
   kind: parameter
@@ -35,7 +35,7 @@ rules:
           corpus_citation_path: tz/statute/cap-50/national-social-security-fund-act
           excerpt: Twenty cents for every complete shilling of wages
   versions:
-  - effective_from: '2023-11-30'
+  - effective_from: '2018-08-01'
     formula: '0.20'
 - name: employee_share_contribution
   kind: derived
@@ -53,7 +53,7 @@ rules:
           corpus_citation_path: tz/statute/cap-50/national-social-security-fund-act
           excerpt: Ten cents for every complete shilling of wages
   versions:
-  - effective_from: '2023-11-30'
+  - effective_from: '2018-08-01'
     formula: max(0, wages) * employee_share_contribution_rate
 - name: statutory_contribution_for_employee
   kind: derived
@@ -71,7 +71,7 @@ rules:
           corpus_citation_path: tz/statute/cap-50/national-social-security-fund-act
           excerpt: Twenty cents for every complete shilling of wages
   versions:
-  - effective_from: '2023-11-30'
+  - effective_from: '2018-08-01'
     formula: max(0, wages) * statutory_contribution_rate
 - name: employer_share_contribution
   kind: derived
@@ -89,5 +89,5 @@ rules:
           corpus_citation_path: tz/statute/cap-50/national-social-security-fund-act
           excerpt: Twenty cents for every complete shilling of wages
   versions:
-  - effective_from: '2023-11-30'
+  - effective_from: '2018-08-01'
     formula: statutory_contribution_for_employee - employee_share_contribution
