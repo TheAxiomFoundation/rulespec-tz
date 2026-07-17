@@ -1,0 +1,16 @@
+- name: public servant salary 1,000,000 -> 20% total (5%+15%)
+  period: 2024-01
+  input:
+    tz:statutes/act-2018-2/public-service-social-security-fund-act#input.monthly_salary: 1000000
+  output:
+    tz:statutes/act-2018-2/public-service-social-security-fund-act#monthly_statutory_contribution: 200000
+    tz:statutes/act-2018-2/public-service-social-security-fund-act#monthly_employee_contribution: 50000
+    tz:statutes/act-2018-2/public-service-social-security-fund-act#monthly_employer_contribution: 150000
+- name: zero salary yields zero contributions
+  period: 2024-01
+  input:
+    tz:statutes/act-2018-2/public-service-social-security-fund-act#input.monthly_salary: 0
+  output:
+    tz:statutes/act-2018-2/public-service-social-security-fund-act#monthly_statutory_contribution: 0
+    tz:statutes/act-2018-2/public-service-social-security-fund-act#monthly_employee_contribution: 0
+    tz:statutes/act-2018-2/public-service-social-security-fund-act#monthly_employer_contribution: 0

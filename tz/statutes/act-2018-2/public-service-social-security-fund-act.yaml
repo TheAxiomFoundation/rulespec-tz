@@ -1,0 +1,127 @@
+format: rulespec/v1
+module:
+  proof_validation:
+    required: true
+  source_verification:
+    corpus_citation_path: tz/statute/act-2018-2/public-service-social-security-fund-act
+    source_sha256: 262f44fb424d5581e439d25aa05fc84aee0fd13decae2c9496b3d1a989b1dbe5
+  summary: 'Public Service Social Security Fund Act, 2018 (No. 2), s. 18: a contribution payable to the Fund by the employer at the rate of twenty percentum of the employee''s monthly salary, constituted by five percentum deducted from the member''s salary (employee share) and fifteen percentum contributed by the employer. PSSSF contribution instrument (TAZMOD tscee01/tscer01).'
+  deferred_outputs:
+  - output: tz:statutes/act-2018-2/public-service-social-security-fund-act#retirement_pension_amount
+    reason: Section 30 makes the commuted pension and monthly pension calculation payable in accordance with a formula prescribed in regulations made pursuant to section 25A of the Social Security (Regulatory Authority) Act; that regulatory formula is not supplied in this source.
+    source_values:
+    - tz:statutes/act-2018-2/public-service-social-security-fund-act#full_pension_minimum_contribution_months
+  - output: tz:statutes/act-2018-2/public-service-social-security-fund-act#special_lump_sum_amount
+    reason: Section 27 and section 31 entitle certain members to a special lump sum, but the amount is prescribed in regulations made pursuant to section 25A of the Social Security (Regulatory Authority) Act and is not supplied in this source.
+  - output: tz:statutes/act-2018-2/public-service-social-security-fund-act#maternity_cash_benefit_amount
+    reason: Section 32 states that cash maternity benefit is at a rate prescribed by the Board upon consultation with the Authority; the prescribed rate is not supplied in this source.
+    source_values:
+    - tz:statutes/act-2018-2/public-service-social-security-fund-act#maternity_minimum_contribution_months
+    - tz:statutes/act-2018-2/public-service-social-security-fund-act#maternity_lifetime_payment_limit
+  - output: tz:statutes/act-2018-2/public-service-social-security-fund-act#invalidity_pension_amount
+    reason: Section 34 states that the rate and duration of invalidity pension shall be prescribed in regulations; those regulations are not supplied in this source.
+  - output: tz:statutes/act-2018-2/public-service-social-security-fund-act#unemployment_benefit_amount
+    reason: Section 35 states that unemployment benefit is payable in a manner and at a rate prescribed in regulations; those regulations are not supplied in this source.
+    source_values:
+    - tz:statutes/act-2018-2/public-service-social-security-fund-act#unemployment_minimum_contribution_months
+    - tz:statutes/act-2018-2/public-service-social-security-fund-act#unemployment_maximum_age_exclusive
+rules:
+- name: statutory_contribution_rate
+  kind: parameter
+  dtype: Rate
+  source: Public Service Social Security Fund Act, 2018, s.18(1)
+  metadata:
+    proof:
+      atoms:
+      - path: versions[0].formula
+        kind: parameter
+        source:
+          corpus_citation_path: tz/statute/act-2018-2/public-service-social-security-fund-act
+          excerpt: contribution payable to the Fund by employer at the rate of twenty percentum of the employee’s monthly salary
+  versions:
+  - effective_from: '2018-08-01'
+    formula: '0.20'
+- name: employee_contribution_rate
+  kind: parameter
+  dtype: Rate
+  source: Public Service Social Security Fund Act, 2018, s.18(2)(a)
+  metadata:
+    proof:
+      atoms:
+      - path: versions[0].formula
+        kind: parameter
+        source:
+          corpus_citation_path: tz/statute/act-2018-2/public-service-social-security-fund-act
+          excerpt: five percentum of monthly salary which shall be deducted by the employer from the member's salary
+  versions:
+  - effective_from: '2018-08-01'
+    formula: '0.05'
+- name: employer_contribution_rate
+  kind: parameter
+  dtype: Rate
+  source: Public Service Social Security Fund Act, 2018, s.18(2)(b)
+  metadata:
+    proof:
+      atoms:
+      - path: versions[0].formula
+        kind: parameter
+        source:
+          corpus_citation_path: tz/statute/act-2018-2/public-service-social-security-fund-act
+          excerpt: fifteen percentum of the member's monthly salary contributed to the member's account by the employer
+  versions:
+  - effective_from: '2018-08-01'
+    formula: '0.15'
+- name: monthly_statutory_contribution
+  kind: derived
+  entity: Person
+  dtype: Money
+  period: Month
+  unit: TZS
+  source: Public Service Social Security Fund Act, 2018, s.18(1)
+  metadata:
+    proof:
+      atoms:
+      - path: versions[0].formula
+        kind: formula
+        source:
+          corpus_citation_path: tz/statute/act-2018-2/public-service-social-security-fund-act
+          excerpt: twenty percentum of the employee’s monthly salary
+  versions:
+  - effective_from: '2018-08-01'
+    formula: monthly_salary * statutory_contribution_rate
+- name: monthly_employee_contribution
+  kind: derived
+  entity: Person
+  dtype: Money
+  period: Month
+  unit: TZS
+  source: Public Service Social Security Fund Act, 2018, s.18(2)(a)
+  metadata:
+    proof:
+      atoms:
+      - path: versions[0].formula
+        kind: formula
+        source:
+          corpus_citation_path: tz/statute/act-2018-2/public-service-social-security-fund-act
+          excerpt: five percentum of monthly salary
+  versions:
+  - effective_from: '2018-08-01'
+    formula: monthly_salary * employee_contribution_rate
+- name: monthly_employer_contribution
+  kind: derived
+  entity: Person
+  dtype: Money
+  period: Month
+  unit: TZS
+  source: Public Service Social Security Fund Act, 2018, s.18(2)(b)
+  metadata:
+    proof:
+      atoms:
+      - path: versions[0].formula
+        kind: formula
+        source:
+          corpus_citation_path: tz/statute/act-2018-2/public-service-social-security-fund-act
+          excerpt: fifteen percentum of the member's monthly salary
+  versions:
+  - effective_from: '2018-08-01'
+    formula: monthly_salary * employer_contribution_rate
