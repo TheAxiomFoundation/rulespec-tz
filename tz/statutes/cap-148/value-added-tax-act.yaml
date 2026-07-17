@@ -1,0 +1,134 @@
+format: rulespec/v1
+module:
+  proof_validation:
+    required: true
+  source_verification:
+    corpus_citation_path: tz/statute/cap-148/value-added-tax-act
+    source_sha256: 5bb2062846499dd42d6704766238f9ee72f07e93c8722cd4095d7d958e77eab7
+  summary: 'Value Added Tax Act, Cap. 148: value added tax is imposed and payable on taxable supplies and taxable imports; the tax payable is the value of the supply or import multiplied by the VAT rate, which is eighteen percent (zero percent for zero-rated supplies/imports). Liability falls on the importer, the supplier of a taxable supply made in Mainland Tanzania, or the purchaser of imported services. Standard VAT rate instrument (TAZMOD tva).'
+rules:
+- name: standard_vat_rate
+  kind: parameter
+  dtype: Rate
+  source: Value Added Tax Act, s. 5(1)
+  metadata:
+    proof:
+      atoms:
+      - path: versions[0].formula
+        kind: parameter
+        source:
+          corpus_citation_path: tz/statute/cap-148/value-added-tax-act
+          excerpt: the value added tax rate, which shall be eighteen percent
+  versions:
+  - effective_from: '2015-07-01'
+    formula: '0.18'
+- name: zero_vat_rate
+  kind: parameter
+  dtype: Rate
+  source: Value Added Tax Act, s. 5(2)
+  metadata:
+    proof:
+      atoms:
+      - path: versions[0].formula
+        kind: parameter
+        source:
+          corpus_citation_path: tz/statute/cap-148/value-added-tax-act
+          excerpt: Where the supply or import is zero-rated, the value added tax rate shall be zero percent.
+  versions:
+  - effective_from: '2015-07-01'
+    formula: '0'
+- name: vat_rate_for_supply_or_import
+  kind: derived
+  entity: Payment
+  dtype: Rate
+  period: Month
+  source: Value Added Tax Act, s. 5(1)-(4)
+  metadata:
+    proof:
+      atoms:
+      - path: versions[0].formula
+        kind: parameter
+        source:
+          corpus_citation_path: tz/statute/cap-148/value-added-tax-act
+          excerpt: eighteen percent
+      - path: versions[0].formula
+        kind: parameter
+        source:
+          corpus_citation_path: tz/statute/cap-148/value-added-tax-act
+          excerpt: zero percent
+  versions:
+  - effective_from: '2015-07-01'
+    formula: 'if supply_or_import_is_zero_rated: zero_vat_rate else: standard_vat_rate'
+- name: value_added_tax_payable
+  kind: derived
+  entity: Payment
+  dtype: Money
+  period: Month
+  source: Value Added Tax Act, ss. 3(1), 5(1)-(2)
+  metadata:
+    proof:
+      atoms:
+      - path: versions[0].formula
+        kind: formula
+        source:
+          corpus_citation_path: tz/statute/cap-148/value-added-tax-act
+          excerpt: Value added tax shall be imposed and payable on taxable supplies and taxable imports.
+      - path: versions[0].formula
+        kind: formula
+        source:
+          corpus_citation_path: tz/statute/cap-148/value-added-tax-act
+          excerpt: calculated by multiplying the value of the supply or import by the value added tax rate
+  versions:
+  - effective_from: '2015-07-01'
+    formula: 'if supply_or_import_is_taxable: value_of_supply_or_import * vat_rate_for_supply_or_import else: 0'
+- name: supplier_liable_for_taxable_supply_made_in_mainland_tanzania
+  kind: derived
+  entity: Payment
+  dtype: Judgment
+  period: Month
+  source: Value Added Tax Act, s. 4(b)
+  metadata:
+    proof:
+      atoms:
+      - path: versions[0].formula
+        kind: predicate
+        source:
+          corpus_citation_path: tz/statute/cap-148/value-added-tax-act
+          excerpt: in the case of a taxable supply that is made in Mainland Tanzania, the supplier
+  versions:
+  - effective_from: '2015-07-01'
+    formula: payment_is_taxable_supply_made_in_mainland_tanzania
+- name: importer_liable_for_taxable_import
+  kind: derived
+  entity: Payment
+  dtype: Judgment
+  period: Month
+  source: Value Added Tax Act, s. 4(a)
+  metadata:
+    proof:
+      atoms:
+      - path: versions[0].formula
+        kind: predicate
+        source:
+          corpus_citation_path: tz/statute/cap-148/value-added-tax-act
+          excerpt: in the case of a taxable import, the importer
+  versions:
+  - effective_from: '2015-07-01'
+    formula: payment_is_taxable_import
+- name: purchaser_liable_for_taxable_imported_services
+  kind: derived
+  entity: Payment
+  dtype: Judgment
+  period: Month
+  source: Value Added Tax Act, s. 4(c)
+  metadata:
+    proof:
+      atoms:
+      - path: versions[0].formula
+        kind: predicate
+        source:
+          corpus_citation_path: tz/statute/cap-148/value-added-tax-act
+          excerpt: in the case of a taxable supply of imported services, the purchaser
+  versions:
+  - effective_from: '2015-07-01'
+    formula: payment_is_taxable_supply_of_imported_services
