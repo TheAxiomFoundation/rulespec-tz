@@ -90,7 +90,11 @@ jobs:
         uses: actions/checkout@v6.0.2
         with:
           fetch-depth: 0
-          token: ${{ secrets.SIGNED_APPLY_TOKEN }}
+          # Do NOT persist the token into the workspace .git/config: the
+          # supervised encoder is pointed at a mirror of this tree and must
+          # never have a filesystem path to credential material. Push auth is
+          # supplied per-invocation via an env-only credential helper below.
+          persist-credentials: false
 
       - name: Guard workspace name
         shell: bash
@@ -217,6 +221,15 @@ jobs:
         run: |
           set -euo pipefail
           pyseg="$(ls /opt/axiom-verification/python/lib | grep '^python3' | head -1)"
+          # Generate against a .git-free mirror of the rules tree. The encoder
+          # runs as this user with a filesystem path to whatever we hand it, so
+          # it must never be pointed at a checkout carrying credential material
+          # or git metadata (the supervised toolchain also rejects a .git-bearing
+          # policy-repo root). The mirror carries content only.
+          genroot="$RUNNER_TEMP/genroot/${{ github.event.repository.name }}"
+          rm -rf "$RUNNER_TEMP/genroot"
+          mkdir -p "$genroot"
+          rsync -a --exclude '.git' --exclude '_axiom' "$GITHUB_WORKSPACE"/ "$genroot"/
           "$RUNNER_TEMP/axiom-encode-apply-signer" run \
             --scope apply_ed25519 \
             --key-env AXIOM_ENCODE_APPLY_SIGNING_KEY \
@@ -233,15 +246,16 @@ jobs:
             --backend openai \
             --corpus-path "$GITHUB_WORKSPACE/_axiom/axiom-corpus" \
             --axiom-rules-engine-path "$GITHUB_WORKSPACE/_axiom/axiom-rules-engine" \
-            --policy-repo-path "$GITHUB_WORKSPACE" \
+            --policy-repo-path "$genroot" \
             --mode cold --no-sync --skip-reviewers \
             --db "$RUNNER_TEMP/enc.db"
 
-      - name: Gate battery (fail-closed pre-check)
+      - name: Gate battery on the generated mirror (fail-closed pre-check)
         shell: bash
         run: |
           set -euo pipefail
           pyseg="$(ls /opt/axiom-verification/python/lib | grep '^python3' | head -1)"
+          genroot="$RUNNER_TEMP/genroot/${{ github.event.repository.name }}"
           supervise() {
             /opt/axiom-verification/axiom-encode-signing-supervisor \
               --trusted-signing-roots /opt/axiom-verification/signing-trust-roots.json \
@@ -250,17 +264,29 @@ jobs:
               --trusted-python-package-root "/opt/axiom-verification/python/lib/$pyseg/site-packages/axiom_encode" \
               -- /opt/axiom-verification/axiom-encode "$@"
           }
-          jur="$(ls -d */ | grep -vE '^(_axiom|tests|data|bulk|docs)/' | grep -E '^[a-z]{2}(-[a-z0-9-]+)*/' | head -1 | tr -d '/')"
-          supervise validate --root "$GITHUB_WORKSPACE/$jur" \
+          jur="$(cd "$genroot" && ls -d */ | grep -vE '^(tests|data|bulk|docs)/' | grep -E '^[a-z]{2}(-[a-z0-9-]+)*/' | head -1 | tr -d '/')"
+          supervise validate --root "$genroot/$jur" \
             --corpus-path "$GITHUB_WORKSPACE/_axiom/axiom-corpus" \
             --axiom-rules-engine-path "$GITHUB_WORKSPACE/_axiom/axiom-rules-engine" \
             --skip-reviewers
-          supervise proof-validate --root "$GITHUB_WORKSPACE/$jur" \
+          supervise proof-validate --root "$genroot/$jur" \
             --corpus-path "$GITHUB_WORKSPACE/_axiom/axiom-corpus"
+
+      - name: Copy generated content back into the checkout
+        shell: bash
+        run: |
+          set -euo pipefail
+          genroot="$RUNNER_TEMP/genroot/${{ github.event.repository.name }}"
+          # Only the content classes the encoder can legitimately produce; never
+          # copy back .git, _axiom, or anything outside the rules content + its
+          # signed apply manifests.
+          rsync -a --delete "$genroot"/ "$GITHUB_WORKSPACE"/ \
+            --exclude '.git' --exclude '_axiom'
 
       - name: Push signed branch and open re-review PR
         shell: bash
         env:
+          SIGNED_APPLY_TOKEN: ${{ secrets.SIGNED_APPLY_TOKEN }}
           GH_TOKEN: ${{ secrets.SIGNED_APPLY_TOKEN }}
           CITATION: ${{ matrix.item.citation }}
           SLUG: ${{ matrix.item.slug }}
@@ -268,6 +294,9 @@ jobs:
           set -euo pipefail
           git config user.name "axiom-signed-apply"
           git config user.email "hello@axiom-foundation.org"
+          # Push auth is supplied here, env-only, via a credential helper — never
+          # persisted to .git/config where the encoder step could read it.
+          git config credential.helper '!f() { echo "username=x-access-token"; echo "password=${SIGNED_APPLY_TOKEN}"; }; f'
           branch="signed/$SLUG"
           git checkout -b "$branch"
           git add -A
