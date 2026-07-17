@@ -87,8 +87,14 @@ jobs:
       contents: read
     steps:
       - name: Checkout rules repository (leaf dir must equal the repo name)
-        uses: actions/checkout@v6.0.2
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
+          # Pin to the protected default branch: workflow_dispatch can fire from
+          # ANY ref, and an attacker-controlled ref could carry pre-committed
+          # .github/scripts changes the content allowlist never inspects. Anchor
+          # generation to main so only encoder-produced (allowlisted) content
+          # can enter the signed branch.
+          ref: ${{ github.event.repository.default_branch }}
           fetch-depth: 0
           # Do NOT persist the token into the workspace .git/config: the
           # supervised encoder is pointed at a mirror of this tree and must
@@ -118,42 +124,45 @@ jobs:
           PY
 
       - name: Checkout axiom-encode (signer + encoder, one coherent ref)
-        uses: actions/checkout@v6.0.2
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
           repository: TheAxiomFoundation/axiom-encode
           ref: ${{ env.AXIOM_ENCODE_REF }}
           path: _axiom/axiom-encode
+          persist-credentials: false
 
       - name: Checkout axiom-rules-engine (pinned)
-        uses: actions/checkout@v6.0.2
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
           repository: TheAxiomFoundation/axiom-rules-engine
           ref: ${{ env.AXIOM_RULES_ENGINE_REF }}
           path: _axiom/axiom-rules-engine
+          persist-credentials: false
 
       - name: Checkout axiom-corpus (validate-pinned ref)
-        uses: actions/checkout@v6.0.2
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
           repository: TheAxiomFoundation/axiom-corpus
           ref: ${{ steps.pins.outputs.corpus_ref }}
           path: _axiom/axiom-corpus
+          persist-credentials: false
 
       - name: Set up Go
-        uses: actions/setup-go@v6.5.0
+        uses: actions/setup-go@924ae3a1cded613372ab5595356fb5720e22ba16 # v6.5.0
         with:
           go-version: 1.26.1
           cache: false
 
       - name: Set up Python
-        uses: actions/setup-python@v6.2.0
+        uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405 # v6.2.0
         with:
           python-version: "3.14"
 
       - name: Install Rust
-        uses: dtolnay/rust-toolchain@stable
+        uses: dtolnay/rust-toolchain@4be7066ada62dd38de10e7b70166bc74ed198c30 # stable
 
       - name: Cache engine build
-        uses: Swatinem/rust-cache@v2.9.1
+        uses: Swatinem/rust-cache@c19371144df3bb44fab255c43d04cbc2ab54d1c4 # v2.9.1
         with:
           workspaces: _axiom/axiom-rules-engine
 
@@ -305,7 +314,7 @@ jobs:
           ls -R "$out" | head -40
 
       - name: Upload signed content artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
           name: signed-${{ matrix.item.slug }}
           path: ${{ runner.temp }}/signed-content
@@ -313,7 +322,7 @@ jobs:
           retention-days: 1
 
   open_pr:
-    needs: encode
+    needs: [dispatch, encode]
     if: ${{ needs.dispatch.outputs.count != '0' }}
     runs-on: ubuntu-latest
     strategy:
@@ -328,13 +337,16 @@ jobs:
       # The encode job held the model/signing keys and NEVER the push token.
       # They share exactly one thing: a content-only, twice-allowlisted artifact.
       - name: Checkout rules repository
-        uses: actions/checkout@v6.0.2
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
+          # Base the signed branch on the protected default branch, never the
+          # dispatch ref (which could carry attacker-precommitted content).
+          ref: ${{ github.event.repository.default_branch }}
           fetch-depth: 0
           token: ${{ secrets.SIGNED_APPLY_TOKEN }}
 
       - name: Download signed content artifact
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
         with:
           name: signed-${{ matrix.item.slug }}
           path: ${{ runner.temp }}/signed-content
@@ -353,8 +365,10 @@ jobs:
             rel="${f#"$src"/}"
             case "$rel" in
               .signed-jurisdictions) continue ;;
-              .github/*|*/.github/*|scripts/*|.git/*|_axiom/*)
+              .github/*|*/.github/*|scripts/*|*/scripts/*|_axiom/*|*/_axiom/*)
                 echo "::error::disallowed path in artifact: $rel"; exit 1 ;;
+              .git/*|*/.git/*|*/.git|.git)
+                echo "::error::embedded git path in artifact: $rel"; exit 1 ;;
             esac
             case "$rel" in *..*) echo "::error::path traversal: $rel"; exit 1 ;; esac
             first="${rel%%/*}"
@@ -393,9 +407,14 @@ jobs:
             known-validation-gaps.yaml known-missing-money-atoms.yaml oracle-coverage-pending.yaml 2>/dev/null || true
           git reset -q -- .github _axiom scripts 2>/dev/null || true
           git diff --cached --quiet && { echo "::error::no signed content to commit"; exit 1; }
-          # Fail closed if anything under .github/scripts sneaked into the index.
-          if git diff --cached --name-only | grep -qE '^(\.github|scripts)/'; then
-            echo "::error::refusing to commit protected-surface changes"; exit 1
+          # Fail closed if any protected surface or embedded-repo path sneaked in.
+          if git diff --cached --name-only | grep -qE '(^|/)(\.github|scripts|_axiom|\.git)(/|$)'; then
+            echo "::error::refusing to commit protected-surface or embedded-git path"; exit 1
+          fi
+          # Fail closed on gitlinks (mode 160000 submodule entries) — an embedded
+          # repo the name-based checks above cannot see as a file.
+          if git ls-files --cached --stage | awk '$1 == "160000"' | grep -q .; then
+            echo "::error::refusing to commit a gitlink / embedded repository"; exit 1
           fi
           git commit \
             -m "Signed re-encode: $CITATION" \
