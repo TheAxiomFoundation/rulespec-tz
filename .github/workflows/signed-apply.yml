@@ -301,17 +301,13 @@ jobs:
           git checkout -b "$branch"
           git add -A
           git diff --cached --quiet && { echo "::error::encode --apply produced no changes"; exit 1; }
-          git commit -m "Signed re-encode: $CITATION
-
-Produced by axiom-encode encode --apply (backend openai) under the
-production supervisor + apply-signer (encode#1135) — Path R on
-encode#1147. For diff re-review against the held reviewed wave PR.
-
-Co-Authored-By: Claude Fable 5 <noreply@anthropic.com>"
+          git commit \
+            -m "Signed re-encode: $CITATION" \
+            -m "Produced by axiom-encode encode --apply (backend openai) under the production supervisor + apply-signer (encode#1135) - Path R on encode#1147. For diff re-review against the held reviewed wave PR." \
+            -m "Co-Authored-By: Claude Fable 5 <noreply@anthropic.com>"
           git push -u origin "$branch"
+          printf '%s\n\n%s\n' "Path R regeneration of \`$CITATION\` under the production apply-signer (encode#1147 / #1135). Re-review required: diff this against the corresponding held reviewed wave PR before merging; the reviewed branch is the reference for intent (verbatim excerpts, effective dates). Never merge red." "Generated with Claude Code" > "$RUNNER_TEMP/pr-body.md"
           gh pr create --head "$branch" \
             --title "Signed re-encode: $CITATION" \
             --label signed-apply \
-            --body "Path R regeneration of \`$CITATION\` under the production apply-signer (encode#1147 / #1135). **Re-review required**: diff this against the corresponding held reviewed wave PR before merging; the reviewed branch is the reference for intent (verbatim excerpts, effective dates). Never merge red.
-
-🤖 Generated with [Claude Code](https://claude.com/claude-code)" || true
+            --body-file "$RUNNER_TEMP/pr-body.md" || true
