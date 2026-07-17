@@ -272,18 +272,108 @@ jobs:
           supervise proof-validate --root "$genroot/$jur" \
             --corpus-path "$GITHUB_WORKSPACE/_axiom/axiom-corpus"
 
-      - name: Copy generated content back into the checkout
+      - name: Stage the allowlisted generated content for the push job
         shell: bash
         run: |
           set -euo pipefail
           genroot="$RUNNER_TEMP/genroot/${{ github.event.repository.name }}"
-          # Only the content classes the encoder can legitimately produce; never
-          # copy back .git, _axiom, or anything outside the rules content + its
-          # signed apply manifests.
-          rsync -a --delete "$genroot"/ "$GITHUB_WORKSPACE"/ \
-            --exclude '.git' --exclude '_axiom'
+          out="$RUNNER_TEMP/signed-content"
+          rm -rf "$out"; mkdir -p "$out"
+          # `encode --apply` may legitimately touch ONLY these content classes.
+          # Copy nothing else into the artifact: never .github, scripts, _axiom,
+          # .git, symlinks, or any path outside this allowlist. This is the first
+          # of two independent allowlist gates (the push job re-checks) so a
+          # generation bug/compromise cannot smuggle an executable surface (e.g.
+          # a workflow file) into the signed branch.
+          jurs="$(cd "$genroot" && ls -d */ 2>/dev/null | grep -E '^[a-z]{2}(-[a-z0-9-]+)*/' | tr -d '/')"
+          allow=()
+          for j in $jurs; do allow+=("$j"); done
+          for p in .axiom/encoding-manifests docs data/coverage \
+                   known-validation-gaps.yaml known-missing-money-atoms.yaml \
+                   oracle-coverage-pending.yaml; do
+            [ -e "$genroot/$p" ] && allow+=("$p")
+          done
+          for p in "${allow[@]}"; do
+            # Refuse symlinks anywhere in a staged path.
+            if find "$genroot/$p" -type l | grep -q .; then
+              echo "::error::symlink in generated path $p — refusing to stage"; exit 1
+            fi
+            mkdir -p "$out/$(dirname "$p")"
+            cp -a "$genroot/$p" "$out/$p"
+          done
+          echo "$jurs" > "$out/.signed-jurisdictions"
+          ls -R "$out" | head -40
 
-      - name: Push signed branch and open re-review PR
+      - name: Upload signed content artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: signed-${{ matrix.item.slug }}
+          path: ${{ runner.temp }}/signed-content
+          include-hidden-files: true
+          retention-days: 1
+
+  open_pr:
+    needs: encode
+    if: ${{ needs.dispatch.outputs.count != '0' }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      max-parallel: 3
+      matrix:
+        item: ${{ fromJSON(needs.dispatch.outputs.matrix).include }}
+    permissions:
+      contents: read
+    steps:
+      # This job holds SIGNED_APPLY_TOKEN and NEVER the model/signing keys.
+      # The encode job held the model/signing keys and NEVER the push token.
+      # They share exactly one thing: a content-only, twice-allowlisted artifact.
+      - name: Checkout rules repository
+        uses: actions/checkout@v6.0.2
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.SIGNED_APPLY_TOKEN }}
+
+      - name: Download signed content artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: signed-${{ matrix.item.slug }}
+          path: ${{ runner.temp }}/signed-content
+
+      - name: Materialize under an independent allowlist
+        shell: bash
+        env:
+          SLUG: ${{ matrix.item.slug }}
+        run: |
+          set -euo pipefail
+          src="$RUNNER_TEMP/signed-content"
+          # Re-verify the artifact carries only content classes — the second,
+          # independent gate. Reject any .github, scripts, workflow file, symlink,
+          # or path traversal regardless of what the upstream job staged.
+          while IFS= read -r -d '' f; do
+            rel="${f#"$src"/}"
+            case "$rel" in
+              .signed-jurisdictions) continue ;;
+              .github/*|*/.github/*|scripts/*|.git/*|_axiom/*)
+                echo "::error::disallowed path in artifact: $rel"; exit 1 ;;
+            esac
+            case "$rel" in *..*) echo "::error::path traversal: $rel"; exit 1 ;; esac
+            first="${rel%%/*}"
+            case "$first" in
+              .axiom|docs|data|known-validation-gaps.yaml|known-missing-money-atoms.yaml|oracle-coverage-pending.yaml) : ;;
+              *)
+                echo "$first" | grep -qE '^[a-z]{2}(-[a-z0-9-]+)*$' \
+                  || { echo "::error::path outside content allowlist: $rel"; exit 1; } ;;
+            esac
+          done < <(find "$src" -type f -print0)
+          if find "$src" -type l | grep -q .; then echo "::error::symlink in artifact"; exit 1; fi
+          # Under .axiom, permit ONLY encoding-manifests (never toolchain.toml,
+          # never workflow-adjacent config).
+          if find "$src/.axiom" -type f 2>/dev/null | grep -vE '/.axiom/encoding-manifests/' | grep -q .; then
+            echo "::error::.axiom artifact content outside encoding-manifests"; exit 1
+          fi
+          rsync -a "$src"/ "$GITHUB_WORKSPACE"/ --exclude '.signed-jurisdictions'
+
+      - name: Commit, push, and open the re-review PR
         shell: bash
         env:
           SIGNED_APPLY_TOKEN: ${{ secrets.SIGNED_APPLY_TOKEN }}
@@ -294,13 +384,19 @@ jobs:
           set -euo pipefail
           git config user.name "axiom-signed-apply"
           git config user.email "hello@axiom-foundation.org"
-          # Push auth is supplied here, env-only, via a credential helper — never
-          # persisted to .git/config where the encoder step could read it.
           git config credential.helper '!f() { echo "username=x-access-token"; echo "password=${SIGNED_APPLY_TOKEN}"; }; f'
           branch="signed/$SLUG"
           git checkout -b "$branch"
-          git add -A
-          git diff --cached --quiet && { echo "::error::encode --apply produced no changes"; exit 1; }
+          # Stage only the content-allowlisted paths, never `-A`: .github and any
+          # other tree stays exactly as origin/main has it.
+          git add ':(glob)*/**' '.axiom/encoding-manifests' docs data/coverage \
+            known-validation-gaps.yaml known-missing-money-atoms.yaml oracle-coverage-pending.yaml 2>/dev/null || true
+          git reset -q -- .github _axiom scripts 2>/dev/null || true
+          git diff --cached --quiet && { echo "::error::no signed content to commit"; exit 1; }
+          # Fail closed if anything under .github/scripts sneaked into the index.
+          if git diff --cached --name-only | grep -qE '^(\.github|scripts)/'; then
+            echo "::error::refusing to commit protected-surface changes"; exit 1
+          fi
           git commit \
             -m "Signed re-encode: $CITATION" \
             -m "Produced by axiom-encode encode --apply (backend openai) under the production supervisor + apply-signer (encode#1135) - Path R on encode#1147. For diff re-review against the held reviewed wave PR." \
