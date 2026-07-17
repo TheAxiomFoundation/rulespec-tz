@@ -25,7 +25,7 @@ rules:
             row_key: total income bands
             column_key: band thresholds
   versions:
-  - effective_from: '2023-11-30'
+  - effective_from: '2020-07-01'
     formula: 'if resident_individual_total_income <= resident_individual_band_0_upper_bound: 0 else: if resident_individual_total_income <= resident_individual_band_1_upper_bound: 1 else: if resident_individual_total_income <= resident_individual_band_2_upper_bound: 2 else: if resident_individual_total_income <= resident_individual_band_3_upper_bound: 3 else: 4'
 - name: resident_individual_band_0_upper_bound
   kind: parameter
@@ -42,7 +42,7 @@ rules:
           corpus_citation_path: tz/statute/cap-332/income-tax-act
           excerpt: Where the total income does not exceed 3,240,000 NIL
   versions:
-  - effective_from: '2023-11-30'
+  - effective_from: '2020-07-01'
     formula: '3240000'
 - name: resident_individual_band_1_upper_bound
   kind: parameter
@@ -59,7 +59,7 @@ rules:
           corpus_citation_path: tz/statute/cap-332/income-tax-act
           excerpt: exceeds 3,240,000/= but does not exceed Tshs.6,240,000/=
   versions:
-  - effective_from: '2023-11-30'
+  - effective_from: '2020-07-01'
     formula: '6240000'
 - name: resident_individual_band_2_upper_bound
   kind: parameter
@@ -76,7 +76,7 @@ rules:
           corpus_citation_path: tz/statute/cap-332/income-tax-act
           excerpt: exceeds 6,240,000/= but does not exceed 9,120,000/=
   versions:
-  - effective_from: '2023-11-30'
+  - effective_from: '2020-07-01'
     formula: '9120000'
 - name: resident_individual_band_3_upper_bound
   kind: parameter
@@ -93,7 +93,7 @@ rules:
           corpus_citation_path: tz/statute/cap-332/income-tax-act
           excerpt: exceeds 9,120,000/= but does not exceed 12,000,000/=
   versions:
-  - effective_from: '2023-11-30'
+  - effective_from: '2020-07-01'
     formula: '12000000'
 - name: resident_individual_tax_band_lower_bound
   kind: parameter
@@ -114,7 +114,7 @@ rules:
             row_key: total income band
             column_key: lower threshold for excess computation
   versions:
-  - effective_from: '2023-11-30'
+  - effective_from: '2020-07-01'
     values:
       0: 0
       1: 3240000
@@ -140,7 +140,7 @@ rules:
             row_key: total income band
             column_key: base tax payable
   versions:
-  - effective_from: '2023-11-30'
+  - effective_from: '2020-07-01'
     values:
       0: 0
       1: 0
@@ -165,7 +165,7 @@ rules:
             row_key: total income band
             column_key: rate payable
   versions:
-  - effective_from: '2023-11-30'
+  - effective_from: '2020-07-01'
     values:
       0: 0
       1: 0.08
@@ -188,7 +188,7 @@ rules:
           corpus_citation_path: tz/statute/cap-332/income-tax-act
           excerpt: Tshs.1,536,000/= plus 30% of the amount in excess of 12,000,000/=
   versions:
-  - effective_from: '2023-11-30'
+  - effective_from: '2020-07-01'
     formula: resident_individual_tax_band_base_tax[resident_individual_income_tax_band] + resident_individual_tax_band_marginal_rate[resident_individual_income_tax_band] * max(0, resident_individual_total_income - resident_individual_tax_band_lower_bound[resident_individual_income_tax_band])
 - name: presumptive_income_tax_turnover_threshold
   kind: parameter
@@ -204,7 +204,7 @@ rules:
           corpus_citation_path: tz/statute/cap-332/income-tax-act
           excerpt: The threshold referred to in subparagraph (1)(b) is 100,000,000 shillings.
   versions:
-  - effective_from: '2023-11-30'
+  - effective_from: '2020-07-01'
     formula: '100000000'
 - name: presumptive_turnover_band
   kind: derived
@@ -224,7 +224,7 @@ rules:
             row_key: turnover
             column_key: tax payable
   versions:
-  - effective_from: '2023-11-30'
+  - effective_from: '2020-07-01'
     formula: 'if business_turnover <= presumptive_band_0_upper_bound: 0 else: if business_turnover <= presumptive_band_1_upper_bound: 1 else: if business_turnover <= presumptive_band_2_upper_bound: 2 else: if business_turnover <= presumptive_income_tax_turnover_threshold: 3 else: -1'
 - name: presumptive_band_0_upper_bound
   kind: parameter
@@ -240,7 +240,7 @@ rules:
           corpus_citation_path: tz/statute/cap-332/income-tax-act
           excerpt: Where turnover does not exceed Tshs. 4,000,000/= NIL
   versions:
-  - effective_from: '2023-11-30'
+  - effective_from: '2020-07-01'
     formula: '4000000'
 - name: presumptive_band_1_upper_bound
   kind: parameter
@@ -256,7 +256,7 @@ rules:
           corpus_citation_path: tz/statute/cap-332/income-tax-act
           excerpt: turnover exceeds Tshs. 4,000,000/= but does not exceed Tshs. 7,000,000/=
   versions:
-  - effective_from: '2023-11-30'
+  - effective_from: '2020-07-01'
     formula: '7000000'
 - name: presumptive_band_2_upper_bound
   kind: parameter
@@ -272,7 +272,7 @@ rules:
           corpus_citation_path: tz/statute/cap-332/income-tax-act
           excerpt: turnover exceeds Tshs. 7,000,000/= but does not exceed Tshs. 11,000,000/=
   versions:
-  - effective_from: '2023-11-30'
+  - effective_from: '2020-07-01'
     formula: '11000000'
 - name: presumptive_compliant_fixed_tax
   kind: parameter
@@ -292,7 +292,7 @@ rules:
             row_key: turnover band
             column_key: tax payable where section 43 of Tax Administration Act is complied with
   versions:
-  - effective_from: '2023-11-30'
+  - effective_from: '2020-07-01'
     values:
       0: 0
       1: 0
@@ -315,7 +315,7 @@ rules:
             row_key: turnover band
             column_key: tax payable where section 43 of Tax Administration Act is complied with
   versions:
-  - effective_from: '2023-11-30'
+  - effective_from: '2020-07-01'
     values:
       0: 0
       1: 0.03
@@ -339,7 +339,7 @@ rules:
             row_key: turnover band
             column_key: tax payable where section 43 of Tax Administration Act is complied with
   versions:
-  - effective_from: '2023-11-30'
+  - effective_from: '2020-07-01'
     values:
       0: 0
       1: 4000000
@@ -363,7 +363,7 @@ rules:
             row_key: turnover band
             column_key: tax payable where section 43 of Tax Administration Act is not complied with
   versions:
-  - effective_from: '2023-11-30'
+  - effective_from: '2020-07-01'
     values:
       0: 0
       1: 100000
@@ -386,7 +386,7 @@ rules:
             row_key: turnover band
             column_key: tax payable where section 43 of Tax Administration Act is not complied with
   versions:
-  - effective_from: '2023-11-30'
+  - effective_from: '2020-07-01'
     values:
       0: 0
       1: 0
@@ -410,7 +410,7 @@ rules:
             row_key: turnover band
             column_key: tax payable where section 43 of Tax Administration Act is not complied with
   versions:
-  - effective_from: '2023-11-30'
+  - effective_from: '2020-07-01'
     values:
       0: 0
       1: 0
@@ -437,7 +437,7 @@ rules:
           corpus_citation_path: tz/statute/cap-332/income-tax-act
           excerpt: the individual’s income tax payable with respect to section 4(1)(a) for the year of income shall be equal to the amount of presumptive income tax provided in subparagraph (3)
   versions:
-  - effective_from: '2023-11-30'
+  - effective_from: '2020-07-01'
     formula: |-
       if resident_individual
          and business_income_exclusively_qualifying_for_presumptive_tax
