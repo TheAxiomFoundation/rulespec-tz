@@ -1,0 +1,93 @@
+format: rulespec/v1
+module:
+  proof_validation:
+    required: true
+  source_verification:
+    corpus_citation_path: tz/statute/cap-50/national-social-security-fund-act
+    source_sha256: bda394486cf90d759648fd6edc92936d71c1dc7120f3416a395a1af07fdfd4dd
+  summary: 'National Social Security Fund Act, Cap. 50, First Schedule: statutory contributions of Twenty cents for every complete shilling of wages (20% of wages total), of which Ten cents for every complete shilling (10%) is the employee share and the remaining ten cents (10%) is the employer share. NSSF contribution instrument (TAZMOD tscee02/tscer02).'
+rules:
+- name: employee_share_contribution_rate
+  kind: parameter
+  dtype: Rate
+  source: First Schedule, contribution table
+  metadata:
+    proof:
+      atoms:
+      - path: versions[0].formula
+        kind: parameter
+        source:
+          corpus_citation_path: tz/statute/cap-50/national-social-security-fund-act
+          excerpt: Ten cents for every complete shilling of wages
+  versions:
+  - effective_from: '2023-11-30'
+    formula: '0.10'
+- name: statutory_contribution_rate
+  kind: parameter
+  dtype: Rate
+  source: First Schedule, contribution table
+  metadata:
+    proof:
+      atoms:
+      - path: versions[0].formula
+        kind: parameter
+        source:
+          corpus_citation_path: tz/statute/cap-50/national-social-security-fund-act
+          excerpt: Twenty cents for every complete shilling of wages
+  versions:
+  - effective_from: '2023-11-30'
+    formula: '0.20'
+- name: employee_share_contribution
+  kind: derived
+  entity: Person
+  dtype: Money
+  period: Month
+  unit: TZS
+  source: First Schedule
+  metadata:
+    proof:
+      atoms:
+      - path: versions[0].formula
+        kind: formula
+        source:
+          corpus_citation_path: tz/statute/cap-50/national-social-security-fund-act
+          excerpt: Ten cents for every complete shilling of wages
+  versions:
+  - effective_from: '2023-11-30'
+    formula: max(0, wages) * employee_share_contribution_rate
+- name: statutory_contribution_for_employee
+  kind: derived
+  entity: Person
+  dtype: Money
+  period: Month
+  unit: TZS
+  source: sections 12(1), First Schedule
+  metadata:
+    proof:
+      atoms:
+      - path: versions[0].formula
+        kind: formula
+        source:
+          corpus_citation_path: tz/statute/cap-50/national-social-security-fund-act
+          excerpt: Twenty cents for every complete shilling of wages
+  versions:
+  - effective_from: '2023-11-30'
+    formula: max(0, wages) * statutory_contribution_rate
+- name: employer_share_contribution
+  kind: derived
+  entity: Person
+  dtype: Money
+  period: Month
+  unit: TZS
+  source: section 12(1), First Schedule
+  metadata:
+    proof:
+      atoms:
+      - path: versions[0].formula
+        kind: formula
+        source:
+          corpus_citation_path: tz/statute/cap-50/national-social-security-fund-act
+          excerpt: Twenty cents for every complete shilling of wages
+  versions:
+  - effective_from: '2023-11-30'
+    formula: statutory_contribution_for_employee - employee_share_contribution
