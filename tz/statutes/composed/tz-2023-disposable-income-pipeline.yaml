@@ -1,0 +1,65 @@
+format: rulespec/v1
+imports:
+- tz:statutes/cap-332/income-tax-act#resident_individual_income_tax_before_credits
+- tz:statutes/cap-50/national-social-security-fund-act#employee_share_contribution
+module:
+  proof_validation:
+    required: true
+  source_verification:
+    corpus_citation_path: tz/statute/cap-332/income-tax-act
+  summary: 'Composed single-earner disposable-income pipeline for the TZ_2023 TAZMOD oracle slice. Wires the imported First Schedule resident-individual income tax on annual employment income and the imported NSSF First Schedule employee share (Ten cents per complete shilling = 10% of wages) into the disposable-income identity: disposable = employment income + benefits - income tax - employee social contribution (TAZMOD ils_dispy = ils_origy + ils_ben - ils_tax - ils_sicee mirror, single formal employee).'
+rules:
+- name: pilot_worker_income_tax
+  kind: derived
+  entity: Person
+  dtype: Money
+  unit: TZS
+  period: Year
+  source: Imported First Schedule paragraph 1 resident-individual income tax on annual employment income
+  metadata:
+    proof:
+      atoms:
+      - path: versions[0].formula
+        kind: formula
+        source:
+          corpus_citation_path: tz/statute/cap-332/income-tax-act
+          excerpt: Tshs.1,536,000/= plus 30% of the amount in excess of 12,000,000/=
+  versions:
+  - effective_from: '2020-07-01'
+    formula: resident_individual_income_tax_before_credits
+- name: pilot_worker_employee_social_contribution
+  kind: derived
+  entity: Person
+  dtype: Money
+  unit: TZS
+  period: Year
+  source: Imported NSSF First Schedule employee share (Ten cents for every complete shilling of wages)
+  metadata:
+    proof:
+      atoms:
+      - path: versions[0].formula
+        kind: formula
+        source:
+          corpus_citation_path: tz/statute/cap-50/national-social-security-fund-act
+          excerpt: Ten cents for every complete shilling of wages
+  versions:
+  - effective_from: '2020-07-01'
+    formula: employee_share_contribution
+- name: pilot_worker_disposable_income
+  kind: derived
+  entity: Person
+  dtype: Money
+  unit: TZS
+  period: Year
+  source: 'Composed identity: employment income + benefits - income tax - employee social contribution'
+  metadata:
+    proof:
+      atoms:
+      - path: versions[0].formula
+        kind: formula
+        source:
+          corpus_citation_path: tz/statute/cap-50/national-social-security-fund-act
+          excerpt: Ten cents for every complete shilling of wages
+  versions:
+  - effective_from: '2020-07-01'
+    formula: resident_individual_total_income + max(0, benefits_received) - pilot_worker_income_tax - pilot_worker_employee_social_contribution
