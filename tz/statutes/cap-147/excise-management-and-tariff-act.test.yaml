@@ -1,0 +1,30 @@
+- name: beer 100 litres at 918/litre
+  period: 2024-01
+  input:
+    tz:statutes/cap-147/excise-management-and-tariff-act#input.litres_of_beer_cleared: 100
+  output:
+    tz:statutes/cap-147/excise-management-and-tariff-act#beer_excise_duty: 91800
+- name: 'wine 100 litres at 2,466.45/litre (finding candidate 4: model 2,959.74 has no print)'
+  period: 2024-01
+  input:
+    tz:statutes/cap-147/excise-management-and-tariff-act#input.litres_of_wine_cleared: 100
+  output:
+    tz:statutes/cap-147/excise-management-and-tariff-act#wine_excise_duty: 246645
+- name: 'spirits 100 litres at 3,978/litre (finding candidate 5: model 3,655.05 is pre-FA2021 stale)'
+  period: 2024-01
+  input:
+    tz:statutes/cap-147/excise-management-and-tariff-act#input.litres_of_spirits_cleared: 100
+  output:
+    tz:statutes/cap-147/excise-management-and-tariff-act#spirits_excise_duty: 397800
+- name: cigarettes 5 thousand at 35,310/mille
+  period: 2024-01
+  input:
+    tz:statutes/cap-147/excise-management-and-tariff-act#input.thousands_of_cigarettes_cleared: 5
+  output:
+    tz:statutes/cap-147/excise-management-and-tariff-act#cigarette_excise_duty: 176550
+- name: tobacco 10 kg at 33,878.88/kg
+  period: 2024-01
+  input:
+    tz:statutes/cap-147/excise-management-and-tariff-act#input.kilograms_of_tobacco_cleared: 10
+  output:
+    tz:statutes/cap-147/excise-management-and-tariff-act#unmanufactured_tobacco_excise_duty: 338788.8

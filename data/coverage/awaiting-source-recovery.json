@@ -1,0 +1,15 @@
+{
+  "schema": "awaiting-source-recovery/v1",
+  "release": "tz-rulespec-2026-07-16",
+  "entries": [
+    {
+      "module": "tz/statutes/cap-147/excise-management-and-tariff-act.yaml",
+      "instrument": "excise (tex) - petroleum fuels",
+      "missing_citations": [
+        "tz/statute/cap-220/roads-and-fuel-tolls-act"
+      ],
+      "reason": "Petrol and diesel excise and the fuel toll (petrol 892 = 379 excise + 513 toll; diesel 768) require the Roads and Fuel Tolls Act (Cap. 220) and its Finance Act amendments (FA2021 ss.42-43, FA2023 ss.50-51 per project_rulespec_tz), which are not among the 24 citation paths in the bound release tz-rulespec-2026-07-16. Alcohol and tobacco specific excise rates are encoded; petroleum-fuel excise is deferred pending a corpus ingest + re-cut carrying Cap. 220. Cigars appear only as an HS-tariff heading in FA2023 with no clean ad-valorem rate substring and are likewise deferred.",
+      "recorded": "2026-07-17"
+    }
+  ]
+}
