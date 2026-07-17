@@ -45,6 +45,9 @@ env:
 
 jobs:
   dispatch:
+    # Hard no-op unless dispatched from the protected default branch. Belt to
+    # the `signing` environment's branch policy (the actual secret gate) below.
+    if: ${{ github.ref_name == github.event.repository.default_branch }}
     runs-on: ubuntu-latest
     outputs:
       matrix: ${{ steps.compute.outputs.matrix }}
@@ -78,6 +81,7 @@ jobs:
     needs: dispatch
     if: ${{ needs.dispatch.outputs.count != '0' }}
     runs-on: ubuntu-latest
+    environment: signing
     strategy:
       fail-fast: false
       max-parallel: 3
@@ -221,25 +225,35 @@ jobs:
           assert hashlib.sha256(canon).hexdigest() == sys.argv[2], "release content hash mismatch"
           PY
 
+      - name: Build the .git-free generation mirror (no secrets in this step)
+        shell: bash
+        run: |
+          set -euo pipefail
+          # Mirror prep runs BEFORE and WITHOUT the signing key in env, so no
+          # coreutils invocation ever inherits it. The encoder runs as this user
+          # with a filesystem path to whatever we hand it, so it must never be
+          # pointed at a checkout carrying credential material or git metadata
+          # (the supervised toolchain also rejects a .git-bearing policy-repo).
+          genroot="$RUNNER_TEMP/genroot/${{ github.event.repository.name }}"
+          rm -rf "$RUNNER_TEMP/genroot"
+          mkdir -p "$genroot"
+          rsync -a --exclude '.git' --exclude '_axiom' "$GITHUB_WORKSPACE"/ "$genroot"/
+          ls /opt/axiom-verification/python/lib | grep '^python3' | head -1 > "$RUNNER_TEMP/pyseg"
+
       - name: Signed re-encode under supervisor + leaf signer
         shell: bash
         env:
+          # The signing key is scoped to ONLY this step (which does nothing but
+          # exec the launcher); the launcher clears it from env before spawning
+          # the supervised encoder. No other command inherits it.
           AXIOM_ENCODE_APPLY_SIGNING_KEY: ${{ secrets.AXIOM_ENCODE_APPLY_SIGNING_KEY }}
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
           CITATION: ${{ matrix.item.citation }}
         run: |
           set -euo pipefail
-          pyseg="$(ls /opt/axiom-verification/python/lib | grep '^python3' | head -1)"
-          # Generate against a .git-free mirror of the rules tree. The encoder
-          # runs as this user with a filesystem path to whatever we hand it, so
-          # it must never be pointed at a checkout carrying credential material
-          # or git metadata (the supervised toolchain also rejects a .git-bearing
-          # policy-repo root). The mirror carries content only.
+          pyseg="$(cat "$RUNNER_TEMP/pyseg")"
           genroot="$RUNNER_TEMP/genroot/${{ github.event.repository.name }}"
-          rm -rf "$RUNNER_TEMP/genroot"
-          mkdir -p "$genroot"
-          rsync -a --exclude '.git' --exclude '_axiom' "$GITHUB_WORKSPACE"/ "$genroot"/
-          "$RUNNER_TEMP/axiom-encode-apply-signer" run \
+          exec "$RUNNER_TEMP/axiom-encode-apply-signer" run \
             --scope apply_ed25519 \
             --key-env AXIOM_ENCODE_APPLY_SIGNING_KEY \
             --supervisor /opt/axiom-verification/axiom-encode-signing-supervisor \
@@ -248,7 +262,7 @@ jobs:
             --trusted-python-import-root "/opt/axiom-verification/python/lib/$pyseg/site-packages" \
             --trusted-python-package-root "/opt/axiom-verification/python/lib/$pyseg/site-packages/axiom_encode" \
             --expected-github-repository "$GITHUB_REPOSITORY" \
-            --allowed-workflow-ref "$GITHUB_WORKFLOW_REF" \
+            --allowed-workflow-ref "refs/heads/${{ github.event.repository.default_branch }}" \
             --allowed-event-name workflow_dispatch \
             -- /opt/axiom-verification/axiom-encode encode "$CITATION" \
             --apply \
@@ -325,6 +339,7 @@ jobs:
     needs: [dispatch, encode]
     if: ${{ needs.dispatch.outputs.count != '0' }}
     runs-on: ubuntu-latest
+    environment: signing
     strategy:
       fail-fast: false
       max-parallel: 3
@@ -425,4 +440,6 @@ jobs:
           gh pr create --head "$branch" \
             --title "Signed re-encode: $CITATION" \
             --label signed-apply \
-            --body-file "$RUNNER_TEMP/pr-body.md" || true
+            --body-file "$RUNNER_TEMP/pr-body.md" \
+            || gh pr view "$branch" --json number >/dev/null \
+            || { echo "::error::no re-review PR exists for $branch"; exit 1; }
