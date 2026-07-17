@@ -1,0 +1,288 @@
+name: Signed apply (Path R)
+
+# Regenerates already-reviewed encode-wave content under the production
+# apply-signer (axiom-encode#1135) so every merged byte is generator-produced
+# with a broker-signed apply manifest — the Path R decision on encode#1147.
+#
+#   * workflow_dispatch only. Input = explicit citation paths; each matrix job
+#     runs `encode <citation> --apply` inside the trusted supervisor with the
+#     leaf signer attached (key never on disk, never inherited by children).
+#   * The job runs the local gate battery fail-closed, pushes signed/<slug>,
+#     and opens a PR for DIFF RE-REVIEW against the held reviewed wave PR.
+#     It NEVER auto-merges and never bypasses red — the repository's required
+#     validate check on the PR is the authoritative gate.
+#   * The signer refuses to operate outside GitHub Actions by construction
+#     (context binding: repository + workflow ref + event name).
+
+on:
+  workflow_dispatch:
+    inputs:
+      citations:
+        description: "Citation paths to re-encode (comma- or newline-separated)."
+        required: true
+        type: string
+      limit:
+        description: "Max citations this run."
+        required: false
+        type: string
+        default: "12"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: signed-apply
+  cancel-in-progress: false
+
+env:
+  # One coherent axiom-encode ref provides the supervisor, the leaf signer,
+  # and the generating encoder (the #1135 signer does not exist at the old
+  # wave pin 185b2457). The validate workflow's encode-ref is bumped to the
+  # same sha in this PR so the signed PRs' CI verifies manifests with the
+  # same encoder generation that produced them.
+  AXIOM_ENCODE_REF: 487e1b796234148e744c0f0426777621550b2c0a
+  AXIOM_RULES_ENGINE_REF: 05eac9d2f89dabe5c6673176260762cef3a58f47
+
+jobs:
+  dispatch:
+    runs-on: ubuntu-latest
+    outputs:
+      matrix: ${{ steps.compute.outputs.matrix }}
+      count: ${{ steps.compute.outputs.count }}
+    steps:
+      - name: Compute citation matrix
+        id: compute
+        shell: bash
+        env:
+          CITATIONS: ${{ inputs.citations }}
+          LIMIT: ${{ inputs.limit || '12' }}
+        run: |
+          set -euo pipefail
+          python3 - <<'PY' >> "$GITHUB_OUTPUT"
+          import json, os, re
+          raw = os.environ["CITATIONS"]
+          limit = int(os.environ["LIMIT"])
+          cites = [c.strip() for c in re.split(r"[,\n]", raw) if c.strip()]
+          cites = cites[:limit]
+          if not cites:
+              raise SystemExit("no citations supplied")
+          include = [
+              {"citation": c, "slug": re.sub(r"[^a-z0-9]+", "-", c.lower()).strip("-")}
+              for c in cites
+          ]
+          print(f"matrix={json.dumps({'include': include})}")
+          print(f"count={len(include)}")
+          PY
+
+  encode:
+    needs: dispatch
+    if: ${{ needs.dispatch.outputs.count != '0' }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      max-parallel: 3
+      matrix:
+        item: ${{ fromJSON(needs.dispatch.outputs.matrix).include }}
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout rules repository (leaf dir must equal the repo name)
+        uses: actions/checkout@v6.0.2
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.SIGNED_APPLY_TOKEN }}
+
+      - name: Guard workspace name
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(basename "$GITHUB_WORKSPACE")" = "${{ github.event.repository.name }}"
+
+      - name: Resolve pinned refs and release binding
+        id: pins
+        shell: bash
+        run: |
+          set -euo pipefail
+          corpus_ref="$(grep -E '^\s*axiom-corpus-ref:' .github/workflows/repository-checks.yml | awk '{print $2}')"
+          test -n "$corpus_ref"
+          echo "corpus_ref=$corpus_ref" >> "$GITHUB_OUTPUT"
+          python3 - <<'PY' >> "$GITHUB_OUTPUT"
+          import tomllib
+          t = tomllib.loads(open(".axiom/toolchain.toml").read())["toolchain"]
+          print(f"release={t['axiom_corpus_release']}")
+          print(f"release_sha={t['axiom_corpus_release_content_sha256']}")
+          PY
+
+      - name: Checkout axiom-encode (signer + encoder, one coherent ref)
+        uses: actions/checkout@v6.0.2
+        with:
+          repository: TheAxiomFoundation/axiom-encode
+          ref: ${{ env.AXIOM_ENCODE_REF }}
+          path: _axiom/axiom-encode
+
+      - name: Checkout axiom-rules-engine (pinned)
+        uses: actions/checkout@v6.0.2
+        with:
+          repository: TheAxiomFoundation/axiom-rules-engine
+          ref: ${{ env.AXIOM_RULES_ENGINE_REF }}
+          path: _axiom/axiom-rules-engine
+
+      - name: Checkout axiom-corpus (validate-pinned ref)
+        uses: actions/checkout@v6.0.2
+        with:
+          repository: TheAxiomFoundation/axiom-corpus
+          ref: ${{ steps.pins.outputs.corpus_ref }}
+          path: _axiom/axiom-corpus
+
+      - name: Set up Go
+        uses: actions/setup-go@v6.5.0
+        with:
+          go-version: 1.26.1
+          cache: false
+
+      - name: Set up Python
+        uses: actions/setup-python@v6.2.0
+        with:
+          python-version: "3.14"
+
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Cache engine build
+        uses: Swatinem/rust-cache@v2.9.1
+        with:
+          workspaces: _axiom/axiom-rules-engine
+
+      - name: Build engine
+        working-directory: _axiom/axiom-rules-engine
+        run: cargo build --release
+
+      - name: Build supervisor and apply-signer (production kind)
+        working-directory: _axiom/axiom-encode
+        run: |
+          set -euo pipefail
+          CGO_ENABLED=0 go build -trimpath -buildvcs=false -ldflags='-buildid=' \
+            -o "$RUNNER_TEMP/axiom-encode-signing-supervisor" ./cmd/axiom-encode-signing-supervisor
+          CGO_ENABLED=0 go build -trimpath -buildvcs=false -ldflags='-buildid=' \
+            -o "$RUNNER_TEMP/axiom-encode-apply-signer" ./cmd/axiom-encode-apply-signer
+          test "$("$RUNNER_TEMP/axiom-encode-apply-signer" --build-kind)" = production
+
+      - name: Provision root-owned trusted runtime
+        working-directory: _axiom/axiom-encode
+        env:
+          APPLY_ROOT: ${{ vars.AXIOM_ENCODE_APPLY_SIGNING_PUBLIC_KEY }}
+          EVAL_ROOT: ${{ vars.AXIOM_ENCODE_EVAL_SIGNING_PUBLIC_KEY }}
+          CORPUS_ROOT: ${{ vars.AXIOM_CORPUS_RELEASE_PUBLIC_KEY }}
+        run: |
+          set -euo pipefail
+          python -m pip install --quiet --upgrade pip
+          python -m pip install --quiet -e .
+          staged="$RUNNER_TEMP/site-packages"
+          rm -rf "$staged"
+          python -m pip install --quiet --target "$staged" .
+          sudo rm -rf /opt/axiom-verification
+          sudo python scripts/provision_verification_supervisor.py \
+            --destination /opt/axiom-verification \
+            --supervisor "$RUNNER_TEMP/axiom-encode-signing-supervisor" \
+            --site-packages "$staged" \
+            --apply-root "$APPLY_ROOT" \
+            --eval-root "$EVAL_ROOT" \
+            --corpus-release-root "$CORPUS_ROOT"
+          sudo chown -R 0:0 /opt/axiom-verification
+          sudo chmod -R go-w /opt/axiom-verification
+
+      - name: Fetch and verify the signed release object
+        shell: bash
+        run: |
+          set -euo pipefail
+          name="${{ steps.pins.outputs.release }}"
+          sha="${{ steps.pins.outputs.release_sha }}"
+          dest="_axiom/axiom-corpus/releases/$name"
+          mkdir -p "$dest"
+          curl -fsS "https://pub-a8952f8657fc49fda358146ac001366c.r2.dev/releases/$name/$sha.json" \
+            -o "$dest/$sha.json"
+          python3 - "$dest/$sha.json" "$sha" <<'PY'
+          import hashlib, json, sys
+          obj = json.load(open(sys.argv[1]))
+          canon = json.dumps(obj["content"], sort_keys=True, separators=(",", ":")).encode()
+          assert hashlib.sha256(canon).hexdigest() == sys.argv[2], "release content hash mismatch"
+          PY
+
+      - name: Signed re-encode under supervisor + leaf signer
+        shell: bash
+        env:
+          AXIOM_ENCODE_APPLY_SIGNING_KEY: ${{ secrets.AXIOM_ENCODE_APPLY_SIGNING_KEY }}
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          CITATION: ${{ matrix.item.citation }}
+        run: |
+          set -euo pipefail
+          pyseg="$(ls /opt/axiom-verification/python/lib | grep '^python3' | head -1)"
+          "$RUNNER_TEMP/axiom-encode-apply-signer" run \
+            --scope apply_ed25519 \
+            --key-env AXIOM_ENCODE_APPLY_SIGNING_KEY \
+            --supervisor /opt/axiom-verification/axiom-encode-signing-supervisor \
+            --trusted-signing-roots /opt/axiom-verification/signing-trust-roots.json \
+            --trusted-python-runtime-root /opt/axiom-verification/python \
+            --trusted-python-import-root "/opt/axiom-verification/python/lib/$pyseg/site-packages" \
+            --trusted-python-package-root "/opt/axiom-verification/python/lib/$pyseg/site-packages/axiom_encode" \
+            --expected-github-repository "$GITHUB_REPOSITORY" \
+            --allowed-workflow-ref "$GITHUB_WORKFLOW_REF" \
+            --allowed-event-name workflow_dispatch \
+            -- /opt/axiom-verification/axiom-encode encode "$CITATION" \
+            --apply \
+            --backend openai \
+            --corpus-path "$GITHUB_WORKSPACE/_axiom/axiom-corpus" \
+            --axiom-rules-engine-path "$GITHUB_WORKSPACE/_axiom/axiom-rules-engine" \
+            --policy-repo-path "$GITHUB_WORKSPACE" \
+            --mode cold --no-sync --skip-reviewers \
+            --db "$RUNNER_TEMP/enc.db"
+
+      - name: Gate battery (fail-closed pre-check)
+        shell: bash
+        run: |
+          set -euo pipefail
+          pyseg="$(ls /opt/axiom-verification/python/lib | grep '^python3' | head -1)"
+          supervise() {
+            /opt/axiom-verification/axiom-encode-signing-supervisor \
+              --trusted-signing-roots /opt/axiom-verification/signing-trust-roots.json \
+              --trusted-python-runtime-root /opt/axiom-verification/python \
+              --trusted-python-import-root "/opt/axiom-verification/python/lib/$pyseg/site-packages" \
+              --trusted-python-package-root "/opt/axiom-verification/python/lib/$pyseg/site-packages/axiom_encode" \
+              -- /opt/axiom-verification/axiom-encode "$@"
+          }
+          jur="$(ls -d */ | grep -vE '^(_axiom|tests|data|bulk|docs)/' | grep -E '^[a-z]{2}(-[a-z0-9-]+)*/' | head -1 | tr -d '/')"
+          supervise validate --root "$GITHUB_WORKSPACE/$jur" \
+            --corpus-path "$GITHUB_WORKSPACE/_axiom/axiom-corpus" \
+            --axiom-rules-engine-path "$GITHUB_WORKSPACE/_axiom/axiom-rules-engine" \
+            --skip-reviewers
+          supervise proof-validate --root "$GITHUB_WORKSPACE/$jur" \
+            --corpus-path "$GITHUB_WORKSPACE/_axiom/axiom-corpus"
+
+      - name: Push signed branch and open re-review PR
+        shell: bash
+        env:
+          GH_TOKEN: ${{ secrets.SIGNED_APPLY_TOKEN }}
+          CITATION: ${{ matrix.item.citation }}
+          SLUG: ${{ matrix.item.slug }}
+        run: |
+          set -euo pipefail
+          git config user.name "axiom-signed-apply"
+          git config user.email "hello@axiom-foundation.org"
+          branch="signed/$SLUG"
+          git checkout -b "$branch"
+          git add -A
+          git diff --cached --quiet && { echo "::error::encode --apply produced no changes"; exit 1; }
+          git commit -m "Signed re-encode: $CITATION
+
+Produced by axiom-encode encode --apply (backend openai) under the
+production supervisor + apply-signer (encode#1135) — Path R on
+encode#1147. For diff re-review against the held reviewed wave PR.
+
+Co-Authored-By: Claude Fable 5 <noreply@anthropic.com>"
+          git push -u origin "$branch"
+          gh pr create --head "$branch" \
+            --title "Signed re-encode: $CITATION" \
+            --label signed-apply \
+            --body "Path R regeneration of \`$CITATION\` under the production apply-signer (encode#1147 / #1135). **Re-review required**: diff this against the corresponding held reviewed wave PR before merging; the reviewed branch is the reference for intent (verbatim excerpts, effective dates). Never merge red.
+
+🤖 Generated with [Claude Code](https://claude.com/claude-code)" || true
