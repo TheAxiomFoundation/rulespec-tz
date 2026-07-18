@@ -287,7 +287,7 @@ jobs:
             --trusted-python-import-root "/opt/axiom-verification/python/lib/$pyseg/site-packages" \
             --trusted-python-package-root "/opt/axiom-verification/python/lib/$pyseg/site-packages/axiom_encode" \
             --expected-github-repository "$GITHUB_REPOSITORY" \
-            --allowed-workflow-ref "refs/heads/${{ github.event.repository.default_branch }}" \
+            --allowed-workflow-ref "${{ github.repository }}/.github/workflows/signed-apply.yml@refs/heads/${{ github.event.repository.default_branch }}" \
             --allowed-event-name workflow_dispatch \
             -- /opt/axiom-verification/axiom-encode encode "$CITATION" \
             --apply \
