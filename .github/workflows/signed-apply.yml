@@ -527,9 +527,19 @@ jobs:
           branch="signed/$SLUG"
           git checkout -b "$branch"
           # Stage only the content-allowlisted paths, never `-A`: .github and any
-          # other tree stays exactly as origin/main has it.
-          git add ':(glob)*/**' '.axiom/encoding-manifests' docs data/coverage \
-            known-validation-gaps.yaml known-missing-money-atoms.yaml oracle-coverage-pending.yaml 2>/dev/null || true
+          # other tree stays exactly as origin/main has it. `git add` fails fast
+          # on a pathspec that matches nothing (e.g. a mirror with no docs/),
+          # staging NOTHING and masking it under `|| true` — so add the
+          # jurisdiction glob (always present post-gate: the tracked .gitkeep
+          # under each content root matches it) plus only the optional meta
+          # paths that actually exist.
+          add_paths=(':(glob)*/**')
+          for p in .axiom/encoding-manifests docs data/coverage \
+                   known-validation-gaps.yaml known-missing-money-atoms.yaml \
+                   oracle-coverage-pending.yaml; do
+            [ -e "$p" ] && add_paths+=("$p")
+          done
+          git add -- "${add_paths[@]}"
           git reset -q -- .github _axiom scripts 2>/dev/null || true
           git diff --cached --quiet && { echo "::error::no signed content to commit"; exit 1; }
           # Fail closed if any protected surface or embedded-repo path sneaked in.
