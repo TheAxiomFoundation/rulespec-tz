@@ -226,7 +226,18 @@ jobs:
             --patchelf /usr/bin/patchelf
           sudo chown -R 0:0 /opt/axiom-verification
           sudo chmod -R go-w /opt/axiom-verification
-          # Downstream --trusted-python-* paths derive from this exact segment.
+          # The supervisor validates its executable's ANCESTORS are root-owned
+          # and not group/other-writable. GitHub's runner image ships /opt itself
+          # group-writable (root-owned), so tighten that one directory to satisfy
+          # the ancestor walk (/ is already root:root 0755; toolcache reads under
+          # /opt are read/execute and unaffected by clearing the write bits).
+          sudo chown 0:0 /opt
+          sudo chmod go-w /opt
+          # Fail closed here if the ancestor is still not root-owned or carries
+          # any group/other-write bit, rather than deep inside the signer.
+          # `find -perm /022` prints the path iff group- OR other-write is set.
+          test "$(stat -c '%u' /opt)" = "0"
+          test -z "$(find /opt -maxdepth 0 -perm /022)"
           ver="$("$PYBIN" -c 'import sys; print("%d.%d" % sys.version_info[:2])')"
           test -d "/opt/axiom-verification/python/lib/python${ver}"
           echo "python${ver}" > "$RUNNER_TEMP/pyseg"
