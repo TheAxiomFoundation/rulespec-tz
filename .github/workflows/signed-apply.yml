@@ -40,7 +40,7 @@ env:
   # wave pin 185b2457). The validate workflow's encode-ref is bumped to the
   # same sha in this PR so the signed PRs' CI verifies manifests with the
   # same encoder generation that produced them.
-  AXIOM_ENCODE_REF: 487e1b796234148e744c0f0426777621550b2c0a
+  AXIOM_ENCODE_REF: 164abed93f6df7f4bc52af533a9989159ec58113
   AXIOM_RULES_ENGINE_REF: 05eac9d2f89dabe5c6673176260762cef3a58f47
 
 jobs:
@@ -49,6 +49,7 @@ jobs:
     # the `signing` environment's branch policy (the actual secret gate) below.
     if: ${{ github.ref_name == github.event.repository.default_branch }}
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     outputs:
       matrix: ${{ steps.compute.outputs.matrix }}
       count: ${{ steps.compute.outputs.count }}
@@ -81,6 +82,9 @@ jobs:
     needs: dispatch
     if: ${{ needs.dispatch.outputs.count != '0' }}
     runs-on: ubuntu-latest
+    # Builds ~10 min + one supervised generation ~10-25 min; a hang must not
+    # ride the 6 h default (first dispatch sat 45 min in a silent copytree).
+    timeout-minutes: 90
     environment: signing
     strategy:
       fail-fast: false
@@ -158,6 +162,7 @@ jobs:
           cache: false
 
       - name: Set up Python
+        id: py
         uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405 # v6.2.0
         with:
           python-version: "3.14"
@@ -190,23 +195,41 @@ jobs:
           APPLY_ROOT: ${{ vars.AXIOM_ENCODE_APPLY_SIGNING_PUBLIC_KEY }}
           EVAL_ROOT: ${{ vars.AXIOM_ENCODE_EVAL_SIGNING_PUBLIC_KEY }}
           CORPUS_ROOT: ${{ vars.AXIOM_CORPUS_RELEASE_PUBLIC_KEY }}
+          PYBIN: ${{ steps.py.outputs.python-path }}
         run: |
           set -euo pipefail
-          python -m pip install --quiet --upgrade pip
-          python -m pip install --quiet -e .
+          # sudo resets PATH (secure_path), so a bare `python` under sudo is the
+          # SYSTEM interpreter — whose sys.base_prefix (/usr) the provisioner
+          # would copy as the runtime. Every call uses the action's resolved
+          # interpreter, and the provisioner itself refuses non-toolcache
+          # prefixes, relocates copied ELF rpaths off the user-writable
+          # toolcache, and proves the runtime self-contained before returning.
+          case "$PYBIN" in
+            "$RUNNER_TOOL_CACHE"/Python/*) ;;
+            *) echo "resolved interpreter is not the toolcache python: $PYBIN"; exit 1 ;;
+          esac
+          sudo apt-get -yq install patchelf || { sudo apt-get -yq update && sudo apt-get -yq install patchelf; }
+          "$PYBIN" -m pip install --quiet --upgrade pip
+          "$PYBIN" -m pip install --quiet -e .
           staged="$RUNNER_TEMP/site-packages"
           rm -rf "$staged"
-          python -m pip install --quiet --target "$staged" .
+          "$PYBIN" -m pip install --quiet --target "$staged" .
           sudo rm -rf /opt/axiom-verification
-          sudo python scripts/provision_verification_supervisor.py \
+          sudo "$PYBIN" -I -S scripts/provision_verification_supervisor.py \
             --destination /opt/axiom-verification \
             --supervisor "$RUNNER_TEMP/axiom-encode-signing-supervisor" \
             --site-packages "$staged" \
             --apply-root "$APPLY_ROOT" \
             --eval-root "$EVAL_ROOT" \
-            --corpus-release-root "$CORPUS_ROOT"
+            --corpus-release-root "$CORPUS_ROOT" \
+            --require-prefix-under "$RUNNER_TOOL_CACHE/Python" \
+            --patchelf /usr/bin/patchelf
           sudo chown -R 0:0 /opt/axiom-verification
           sudo chmod -R go-w /opt/axiom-verification
+          # Downstream --trusted-python-* paths derive from this exact segment.
+          ver="$("$PYBIN" -c 'import sys; print("%d.%d" % sys.version_info[:2])')"
+          test -d "/opt/axiom-verification/python/lib/python${ver}"
+          echo "python${ver}" > "$RUNNER_TEMP/pyseg"
 
       - name: Fetch and verify the signed release object
         shell: bash
@@ -238,7 +261,6 @@ jobs:
           rm -rf "$RUNNER_TEMP/genroot"
           mkdir -p "$genroot"
           rsync -a --exclude '.git' --exclude '_axiom' "$GITHUB_WORKSPACE"/ "$genroot"/
-          ls /opt/axiom-verification/python/lib | grep '^python3' | head -1 > "$RUNNER_TEMP/pyseg"
 
       - name: Signed re-encode under supervisor + leaf signer
         shell: bash
@@ -280,7 +302,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          pyseg="$(ls /opt/axiom-verification/python/lib | grep '^python3' | head -1)"
+          read -r pyseg < "$RUNNER_TEMP/pyseg"
           genroot="$RUNNER_TEMP/genroot/${{ github.event.repository.name }}"
           supervise() {
             /opt/axiom-verification/axiom-encode-signing-supervisor \
@@ -342,6 +364,7 @@ jobs:
     needs: [dispatch, encode]
     if: ${{ needs.dispatch.outputs.count != '0' }}
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     environment: signing
     strategy:
       fail-fast: false
