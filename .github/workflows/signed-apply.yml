@@ -335,8 +335,65 @@ jobs:
             --corpus-path "$GITHUB_WORKSPACE/_axiom/axiom-corpus" \
             --axiom-rules-engine-path "$GITHUB_WORKSPACE/_axiom/axiom-rules-engine" \
             --skip-reviewers
-          supervise proof-validate --root "$genroot/$jur" \
-            --corpus-path "$GITHUB_WORKSPACE/_axiom/axiom-corpus"
+          # proof-validate was hard-cut to explicit RuleSpec files (the --root
+          # tree form was removed in the named-corpus cut). Select the same
+          # modules the org validate recipe does (atomic RuleSpec YAML under the
+          # jurisdiction's canonical content roots, excluding *.test.* and
+          # composition specs under programs/) and skip ACTIVE validation
+          # waivers so a waived module stays consistent with `validate` above
+          # (a waived module otherwise passes validate and hard-fails here).
+          gate_tmp="$(mktemp -d "$RUNNER_TEMP/proof-gate.XXXXXX")"
+          trap 'rm -rf "$gate_tmp"' EXIT
+
+          (
+            cd "$genroot"
+            find "$jur" -type f \( -name "*.yaml" -o -name "*.yml" \) \
+              ! -name "*.test.yaml" ! -name "*.test.yml" \
+              ! -path "*/programs/*" -print0
+          ) > "$gate_tmp/candidates"
+
+          # Only consult waivers when the file exists: the CLI's waiver loader
+          # fails closed on a missing file, so an unconditional call would abort
+          # this gate on a clean mirror that declares no gaps. A malformed
+          # present file still fails loudly here (desired).
+          : > "$gate_tmp/active-waivers"
+          if [ -f "$genroot/known-validation-gaps.yaml" ]; then
+            supervise validation-waivers active-paths \
+              --root "$genroot" > "$gate_tmp/active-waivers"
+          fi
+
+          mapfile -d '' -t candidates < "$gate_tmp/candidates"
+          mapfile -t active_waivers < "$gate_tmp/active-waivers"
+
+          proof_files=()
+          for rel in "${candidates[@]}"; do
+            [ -n "$rel" ] || continue
+            case "$rel" in
+              */statutes/*|*/regulations/*|*/policies/*|*/legislation/*) ;;
+              *) continue ;;
+            esac
+            waived=false
+            for waiver_path in "${active_waivers[@]}"; do
+              if [[ "$rel" == "$waiver_path" ]]; then
+                waived=true
+                break
+              fi
+            done
+            if [[ "$waived" == false ]]; then
+              proof_files+=("$rel")
+            fi
+          done
+
+          if (( ${#proof_files[@]} == 0 )); then
+            echo "::error::proof-validate gate selected no unwaived RuleSpec modules"
+            exit 1
+          fi
+
+          (
+            cd "$genroot"
+            supervise proof-validate "${proof_files[@]}" \
+              --corpus-path "$GITHUB_WORKSPACE/_axiom/axiom-corpus"
+          )
 
       - name: Stage the allowlisted generated content for the push job
         shell: bash
