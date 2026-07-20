@@ -1,0 +1,189 @@
+format: rulespec/v1
+module:
+  proof_validation:
+    required: true
+  source_verification:
+    corpus_citation_path: tz/statute/cap-147/excise-management-and-tariff-act
+  summary: 'Excise (Management and Tariff) Act, Cap. 147, Fourth Schedule specific excise rates as amended by the Finance Acts. TZ_2023 (TAZMOD convention uses Finance Act 2023 rates from 1 July 2023): beer 918.00/litre, cigarettes 35,310.00/thousand, unmanufactured tobacco 33,878.88/kg, wine 2,466.45/litre (Finance Act 2023); spirits 3,978/litre and grape-wine spirits 4,386/litre (Finance Act 2021, unchanged). Petrol/diesel fuel excise and fuel toll require the Roads and Fuel Tolls Act (Cap. 220), not in the bound release (see data/coverage/awaiting-source-recovery.json). TAZMOD excise instrument (tex).'
+rules:
+- name: beer_specific_excise_rate_per_litre
+  kind: parameter
+  dtype: Money
+  unit: TZS
+  source: Excise (Management and Tariff) Act Cap. 147 Fourth Schedule, as amended
+  metadata:
+    proof:
+      atoms:
+      - path: versions[0].formula
+        kind: amount
+        source:
+          corpus_citation_path: tz/statute/act-2023-7/finance-act-2023
+          excerpt: Tshs. 918.00 per litre
+  versions:
+  - effective_from: '2023-07-01'
+    formula: '918'
+- name: cigarette_specific_excise_rate_per_thousand
+  kind: parameter
+  dtype: Money
+  unit: TZS
+  source: Excise (Management and Tariff) Act Cap. 147 Fourth Schedule, as amended
+  metadata:
+    proof:
+      atoms:
+      - path: versions[0].formula
+        kind: amount
+        source:
+          corpus_citation_path: tz/statute/act-2023-7/finance-act-2023
+          excerpt: Tshs. 35,310.00 per mil
+  versions:
+  - effective_from: '2023-07-01'
+    formula: '35310'
+- name: unmanufactured_tobacco_specific_excise_rate_per_kg
+  kind: parameter
+  dtype: Money
+  unit: TZS
+  source: Excise (Management and Tariff) Act Cap. 147 Fourth Schedule, as amended
+  metadata:
+    proof:
+      atoms:
+      - path: versions[0].formula
+        kind: amount
+        source:
+          corpus_citation_path: tz/statute/act-2023-7/finance-act-2023
+          excerpt: 33,878.88 per kg
+  versions:
+  - effective_from: '2023-07-01'
+    formula: '33878.88'
+- name: wine_specific_excise_rate_per_litre
+  kind: parameter
+  dtype: Money
+  unit: TZS
+  source: Excise (Management and Tariff) Act Cap. 147 Fourth Schedule, as amended
+  metadata:
+    proof:
+      atoms:
+      - path: versions[0].formula
+        kind: amount
+        source:
+          corpus_citation_path: tz/statute/act-2023-7/finance-act-2023
+          excerpt: Tshs. 2,466.45
+  versions:
+  - effective_from: '2023-07-01'
+    formula: '2466.45'
+- name: spirits_specific_excise_rate_per_litre
+  kind: parameter
+  dtype: Money
+  unit: TZS
+  source: Excise (Management and Tariff) Act Cap. 147 Fourth Schedule, as amended
+  metadata:
+    proof:
+      atoms:
+      - path: versions[0].formula
+        kind: amount
+        source:
+          corpus_citation_path: tz/statute/act-2021-3/finance-act-2021
+          excerpt: Tshs. 3,978.0
+  versions:
+  - effective_from: '2021-07-01'
+    formula: '3978'
+- name: spirits_from_grape_wine_excise_rate_per_litre
+  kind: parameter
+  dtype: Money
+  unit: TZS
+  source: Excise (Management and Tariff) Act Cap. 147 Fourth Schedule, as amended
+  metadata:
+    proof:
+      atoms:
+      - path: versions[0].formula
+        kind: amount
+        source:
+          corpus_citation_path: tz/statute/act-2021-3/finance-act-2021
+          excerpt: Tshs. 4,386.0
+  versions:
+  - effective_from: '2021-07-01'
+    formula: '4386'
+- name: beer_excise_duty
+  kind: derived
+  entity: Product
+  dtype: Money
+  unit: TZS
+  source: Excise (Management and Tariff) Act Cap. 147
+  metadata:
+    proof:
+      atoms:
+      - path: versions[0].formula
+        kind: formula
+        source:
+          corpus_citation_path: tz/statute/act-2023-7/finance-act-2023
+          excerpt: Tshs. 918.00 per litre
+  versions:
+  - effective_from: '2023-07-01'
+    formula: beer_specific_excise_rate_per_litre * max(0, litres_of_beer_cleared)
+- name: wine_excise_duty
+  kind: derived
+  entity: Product
+  dtype: Money
+  unit: TZS
+  source: Excise (Management and Tariff) Act Cap. 147
+  metadata:
+    proof:
+      atoms:
+      - path: versions[0].formula
+        kind: formula
+        source:
+          corpus_citation_path: tz/statute/act-2023-7/finance-act-2023
+          excerpt: Tshs. 2,466.45
+  versions:
+  - effective_from: '2023-07-01'
+    formula: wine_specific_excise_rate_per_litre * max(0, litres_of_wine_cleared)
+- name: cigarette_excise_duty
+  kind: derived
+  entity: Product
+  dtype: Money
+  unit: TZS
+  source: Excise (Management and Tariff) Act Cap. 147
+  metadata:
+    proof:
+      atoms:
+      - path: versions[0].formula
+        kind: formula
+        source:
+          corpus_citation_path: tz/statute/act-2023-7/finance-act-2023
+          excerpt: Tshs. 35,310.00 per mil
+  versions:
+  - effective_from: '2023-07-01'
+    formula: cigarette_specific_excise_rate_per_thousand * max(0, thousands_of_cigarettes_cleared)
+- name: unmanufactured_tobacco_excise_duty
+  kind: derived
+  entity: Product
+  dtype: Money
+  unit: TZS
+  source: Excise (Management and Tariff) Act Cap. 147
+  metadata:
+    proof:
+      atoms:
+      - path: versions[0].formula
+        kind: formula
+        source:
+          corpus_citation_path: tz/statute/act-2023-7/finance-act-2023
+          excerpt: 33,878.88 per kg
+  versions:
+  - effective_from: '2023-07-01'
+    formula: unmanufactured_tobacco_specific_excise_rate_per_kg * max(0, kilograms_of_tobacco_cleared)
+- name: spirits_excise_duty
+  kind: derived
+  entity: Product
+  dtype: Money
+  unit: TZS
+  source: Excise (Management and Tariff) Act Cap. 147
+  metadata:
+    proof:
+      atoms:
+      - path: versions[0].formula
+        kind: formula
+        source:
+          corpus_citation_path: tz/statute/act-2021-3/finance-act-2021
+          excerpt: Tshs. 3,978.0
+  versions:
+  - effective_from: '2021-07-01'
+    formula: spirits_specific_excise_rate_per_litre * max(0, litres_of_spirits_cleared)
