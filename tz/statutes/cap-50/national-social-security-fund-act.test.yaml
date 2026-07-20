@@ -1,0 +1,16 @@
+- name: wages 100,000 -> 20% total split 10/10
+  period: 2024-01
+  input:
+    tz:statutes/cap-50/national-social-security-fund-act#input.wages: 100000
+  output:
+    tz:statutes/cap-50/national-social-security-fund-act#employee_share_contribution: 10000
+    tz:statutes/cap-50/national-social-security-fund-act#statutory_contribution_for_employee: 20000
+    tz:statutes/cap-50/national-social-security-fund-act#employer_share_contribution: 10000
+- name: zero wages yields zero contributions
+  period: 2024-01
+  input:
+    tz:statutes/cap-50/national-social-security-fund-act#input.wages: 0
+  output:
+    tz:statutes/cap-50/national-social-security-fund-act#employee_share_contribution: 0
+    tz:statutes/cap-50/national-social-security-fund-act#statutory_contribution_for_employee: 0
+    tz:statutes/cap-50/national-social-security-fund-act#employer_share_contribution: 0
