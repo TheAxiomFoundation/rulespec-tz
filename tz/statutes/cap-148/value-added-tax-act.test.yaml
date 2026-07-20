@@ -1,0 +1,50 @@
+- name: standard rated taxable supply computes eighteen percent VAT
+  period: 2024-04
+  input:
+    tz:statutes/cap-148/value-added-tax-act#input.supply_or_import_is_taxable: true
+    tz:statutes/cap-148/value-added-tax-act#input.supply_or_import_is_zero_rated: false
+    tz:statutes/cap-148/value-added-tax-act#input.value_of_supply_or_import: 100000
+    tz:statutes/cap-148/value-added-tax-act#input.payment_is_taxable_supply_made_in_mainland_tanzania: true
+    tz:statutes/cap-148/value-added-tax-act#input.payment_is_taxable_import: false
+    tz:statutes/cap-148/value-added-tax-act#input.payment_is_taxable_supply_of_imported_services: false
+  output:
+    tz:statutes/cap-148/value-added-tax-act#vat_rate_for_supply_or_import: 0.18
+    tz:statutes/cap-148/value-added-tax-act#value_added_tax_payable: 18000
+    tz:statutes/cap-148/value-added-tax-act#supplier_liable_for_taxable_supply_made_in_mainland_tanzania: holds
+- name: zero-rated taxable import uses zero percent rate
+  period: 2024-04
+  input:
+    tz:statutes/cap-148/value-added-tax-act#input.supply_or_import_is_taxable: true
+    tz:statutes/cap-148/value-added-tax-act#input.supply_or_import_is_zero_rated: true
+    tz:statutes/cap-148/value-added-tax-act#input.value_of_supply_or_import: 100000
+    tz:statutes/cap-148/value-added-tax-act#input.payment_is_taxable_supply_made_in_mainland_tanzania: false
+    tz:statutes/cap-148/value-added-tax-act#input.payment_is_taxable_import: true
+    tz:statutes/cap-148/value-added-tax-act#input.payment_is_taxable_supply_of_imported_services: false
+  output:
+    tz:statutes/cap-148/value-added-tax-act#vat_rate_for_supply_or_import: 0
+    tz:statutes/cap-148/value-added-tax-act#value_added_tax_payable: 0
+    tz:statutes/cap-148/value-added-tax-act#importer_liable_for_taxable_import: holds
+- name: non-taxable supply or import has no VAT payable
+  period: 2024-04
+  input:
+    tz:statutes/cap-148/value-added-tax-act#input.supply_or_import_is_taxable: false
+    tz:statutes/cap-148/value-added-tax-act#input.supply_or_import_is_zero_rated: false
+    tz:statutes/cap-148/value-added-tax-act#input.value_of_supply_or_import: 100000
+    tz:statutes/cap-148/value-added-tax-act#input.payment_is_taxable_supply_made_in_mainland_tanzania: false
+    tz:statutes/cap-148/value-added-tax-act#input.payment_is_taxable_import: false
+    tz:statutes/cap-148/value-added-tax-act#input.payment_is_taxable_supply_of_imported_services: false
+  output:
+    tz:statutes/cap-148/value-added-tax-act#value_added_tax_payable: 0
+    tz:statutes/cap-148/value-added-tax-act#supplier_liable_for_taxable_supply_made_in_mainland_tanzania: not_holds
+- name: purchaser liable for taxable imported services
+  period: 2024-04
+  input:
+    tz:statutes/cap-148/value-added-tax-act#input.supply_or_import_is_taxable: true
+    tz:statutes/cap-148/value-added-tax-act#input.supply_or_import_is_zero_rated: false
+    tz:statutes/cap-148/value-added-tax-act#input.value_of_supply_or_import: 50000
+    tz:statutes/cap-148/value-added-tax-act#input.payment_is_taxable_supply_made_in_mainland_tanzania: false
+    tz:statutes/cap-148/value-added-tax-act#input.payment_is_taxable_import: false
+    tz:statutes/cap-148/value-added-tax-act#input.payment_is_taxable_supply_of_imported_services: true
+  output:
+    tz:statutes/cap-148/value-added-tax-act#value_added_tax_payable: 9000
+    tz:statutes/cap-148/value-added-tax-act#purchaser_liable_for_taxable_imported_services: holds
