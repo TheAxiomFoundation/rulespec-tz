@@ -1,0 +1,98 @@
+- name: maximum_foundational_cash_transfer_with_public_works_and_livelihood_cap
+  period: 2019-09
+  input:
+    tz:policies/tasaf-pssn/pssn-ii-benefit-structure#input.household_receives_direct_support_or_productive_transfer: true
+    tz:policies/tasaf-pssn/pssn-ii-benefit-structure#input.household_includes_child_under_18: true
+    tz:policies/tasaf-pssn/pssn-ii-benefit-structure#input.household_includes_person_with_disability: true
+    tz:policies/tasaf-pssn/pssn-ii-benefit-structure#input.household_has_compliant_child_aged_0_to_5: true
+    tz:policies/tasaf-pssn/pssn-ii-benefit-structure#input.lower_primary_child_count_with_required_attendance: 2
+    tz:policies/tasaf-pssn/pssn-ii-benefit-structure#input.upper_primary_child_count_with_required_attendance: 2
+    tz:policies/tasaf-pssn/pssn-ii-benefit-structure#input.lower_secondary_child_count_with_required_attendance: 2
+    tz:policies/tasaf-pssn/pssn-ii-benefit-structure#input.upper_secondary_child_count_with_required_attendance: 1
+    tz:policies/tasaf-pssn/pssn-ii-benefit-structure#input.household_participates_in_public_works: true
+    tz:policies/tasaf-pssn/pssn-ii-benefit-structure#input.household_approved_for_livelihood_grant: true
+    tz:policies/tasaf-pssn/pssn-ii-benefit-structure#input.requested_livelihood_grant_amount: 600000
+  output:
+    tz:policies/tasaf-pssn/pssn-ii-benefit-structure#monthly_foundational_cash_transfer_before_overall_cap: 55000
+    tz:policies/tasaf-pssn/pssn-ii-benefit-structure#monthly_foundational_cash_transfer: 55000
+    tz:policies/tasaf-pssn/pssn-ii-benefit-structure#monthly_cash_plus_public_works_transfer: 85000
+    tz:policies/tasaf-pssn/pssn-ii-benefit-structure#livelihood_grant_payable: 500000
+- name: minimum_cash_transfer_without_optional_grants_or_public_works
+  period: 2019-09
+  input:
+    tz:policies/tasaf-pssn/pssn-ii-benefit-structure#input.household_receives_direct_support_or_productive_transfer: true
+    tz:policies/tasaf-pssn/pssn-ii-benefit-structure#input.household_includes_child_under_18: false
+    tz:policies/tasaf-pssn/pssn-ii-benefit-structure#input.household_includes_person_with_disability: false
+    tz:policies/tasaf-pssn/pssn-ii-benefit-structure#input.household_has_compliant_child_aged_0_to_5: false
+    tz:policies/tasaf-pssn/pssn-ii-benefit-structure#input.lower_primary_child_count_with_required_attendance: 0
+    tz:policies/tasaf-pssn/pssn-ii-benefit-structure#input.upper_primary_child_count_with_required_attendance: 0
+    tz:policies/tasaf-pssn/pssn-ii-benefit-structure#input.lower_secondary_child_count_with_required_attendance: 0
+    tz:policies/tasaf-pssn/pssn-ii-benefit-structure#input.upper_secondary_child_count_with_required_attendance: 0
+    tz:policies/tasaf-pssn/pssn-ii-benefit-structure#input.household_participates_in_public_works: false
+    tz:policies/tasaf-pssn/pssn-ii-benefit-structure#input.household_approved_for_livelihood_grant: false
+    tz:policies/tasaf-pssn/pssn-ii-benefit-structure#input.requested_livelihood_grant_amount: 500000
+  output:
+    tz:policies/tasaf-pssn/pssn-ii-benefit-structure#monthly_foundational_cash_transfer_before_overall_cap: 12000
+    tz:policies/tasaf-pssn/pssn-ii-benefit-structure#monthly_foundational_cash_transfer: 12000
+    tz:policies/tasaf-pssn/pssn-ii-benefit-structure#monthly_cash_plus_public_works_transfer: 12000
+    tz:policies/tasaf-pssn/pssn-ii-benefit-structure#livelihood_grant_payable: 0
+- name: minimum_floor_applies_when_no_monthly_cash_components
+  period: 2019-09
+  input:
+    tz:policies/tasaf-pssn/pssn-ii-benefit-structure#input.household_receives_direct_support_or_productive_transfer: false
+    tz:policies/tasaf-pssn/pssn-ii-benefit-structure#input.household_includes_child_under_18: false
+    tz:policies/tasaf-pssn/pssn-ii-benefit-structure#input.household_includes_person_with_disability: false
+    tz:policies/tasaf-pssn/pssn-ii-benefit-structure#input.household_has_compliant_child_aged_0_to_5: false
+    tz:policies/tasaf-pssn/pssn-ii-benefit-structure#input.lower_primary_child_count_with_required_attendance: 0
+    tz:policies/tasaf-pssn/pssn-ii-benefit-structure#input.upper_primary_child_count_with_required_attendance: 0
+    tz:policies/tasaf-pssn/pssn-ii-benefit-structure#input.lower_secondary_child_count_with_required_attendance: 0
+    tz:policies/tasaf-pssn/pssn-ii-benefit-structure#input.upper_secondary_child_count_with_required_attendance: 0
+    tz:policies/tasaf-pssn/pssn-ii-benefit-structure#input.household_participates_in_public_works: false
+    tz:policies/tasaf-pssn/pssn-ii-benefit-structure#input.household_approved_for_livelihood_grant: true
+    tz:policies/tasaf-pssn/pssn-ii-benefit-structure#input.requested_livelihood_grant_amount: 400000
+  output:
+    tz:policies/tasaf-pssn/pssn-ii-benefit-structure#monthly_foundational_cash_transfer_before_overall_cap: 0
+    tz:policies/tasaf-pssn/pssn-ii-benefit-structure#monthly_foundational_cash_transfer: 12000
+    tz:policies/tasaf-pssn/pssn-ii-benefit-structure#monthly_cash_plus_public_works_transfer: 12000
+    tz:policies/tasaf-pssn/pssn-ii-benefit-structure#livelihood_grant_payable: 400000
+- name: 'FBCT probe: direct support plus one child grant = 17,000'
+  period: 2024-01
+  input:
+    tz:policies/tasaf-pssn/pssn-ii-benefit-structure#input.household_receives_direct_support_or_productive_transfer: true
+    tz:policies/tasaf-pssn/pssn-ii-benefit-structure#input.household_includes_child_under_18: true
+    tz:policies/tasaf-pssn/pssn-ii-benefit-structure#input.household_includes_person_with_disability: false
+    tz:policies/tasaf-pssn/pssn-ii-benefit-structure#input.household_has_compliant_child_aged_0_to_5: false
+    tz:policies/tasaf-pssn/pssn-ii-benefit-structure#input.lower_primary_child_count_with_required_attendance: 0
+    tz:policies/tasaf-pssn/pssn-ii-benefit-structure#input.upper_primary_child_count_with_required_attendance: 0
+    tz:policies/tasaf-pssn/pssn-ii-benefit-structure#input.lower_secondary_child_count_with_required_attendance: 0
+    tz:policies/tasaf-pssn/pssn-ii-benefit-structure#input.upper_secondary_child_count_with_required_attendance: 0
+    tz:policies/tasaf-pssn/pssn-ii-benefit-structure#input.household_participates_in_public_works: false
+    tz:policies/tasaf-pssn/pssn-ii-benefit-structure#input.household_approved_for_livelihood_grant: false
+    tz:policies/tasaf-pssn/pssn-ii-benefit-structure#input.requested_livelihood_grant_amount: 0
+  output:
+    tz:policies/tasaf-pssn/pssn-ii-benefit-structure#monthly_foundational_cash_transfer_before_overall_cap: 17000
+    tz:policies/tasaf-pssn/pssn-ii-benefit-structure#monthly_foundational_cash_transfer: 17000
+- name: 'VCCT probe: infant + upper primary + upper secondary HCT = 17,000'
+  period: 2024-01
+  input:
+    tz:policies/tasaf-pssn/pssn-ii-benefit-structure#input.household_receives_direct_support_or_productive_transfer: false
+    tz:policies/tasaf-pssn/pssn-ii-benefit-structure#input.household_includes_child_under_18: false
+    tz:policies/tasaf-pssn/pssn-ii-benefit-structure#input.household_includes_person_with_disability: false
+    tz:policies/tasaf-pssn/pssn-ii-benefit-structure#input.household_has_compliant_child_aged_0_to_5: true
+    tz:policies/tasaf-pssn/pssn-ii-benefit-structure#input.lower_primary_child_count_with_required_attendance: 0
+    tz:policies/tasaf-pssn/pssn-ii-benefit-structure#input.upper_primary_child_count_with_required_attendance: 1
+    tz:policies/tasaf-pssn/pssn-ii-benefit-structure#input.lower_secondary_child_count_with_required_attendance: 0
+    tz:policies/tasaf-pssn/pssn-ii-benefit-structure#input.upper_secondary_child_count_with_required_attendance: 1
+    tz:policies/tasaf-pssn/pssn-ii-benefit-structure#input.household_participates_in_public_works: false
+    tz:policies/tasaf-pssn/pssn-ii-benefit-structure#input.household_approved_for_livelihood_grant: false
+    tz:policies/tasaf-pssn/pssn-ii-benefit-structure#input.requested_livelihood_grant_amount: 0
+  output:
+    tz:policies/tasaf-pssn/pssn-ii-benefit-structure#monthly_foundational_cash_transfer_before_overall_cap: 17000
+    tz:policies/tasaf-pssn/pssn-ii-benefit-structure#monthly_foundational_cash_transfer: 17000
+- name: 'bunel: enrolled TASAF extremely-poor household is eligible'
+  period: 2024-01
+  input:
+    ? tz:policies/tasaf-pssn/pssn-ii-benefit-structure#input.household_is_tasaf_registered_extremely_poor_household_enrolled_in_pssn
+    : true
+  output:
+    tz:policies/tasaf-pssn/pssn-ii-benefit-structure#pssn_beneficiary_household_eligible: holds

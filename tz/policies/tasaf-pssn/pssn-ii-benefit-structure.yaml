@@ -1,0 +1,436 @@
+format: rulespec/v1
+module:
+  proof_validation:
+    required: true
+  source_verification:
+    corpus_citation_path: tz/policy/tasaf-pssn/pssn-ii-benefit-structure
+    source_sha256: 6df512a6ccd7ec81af5200489a4201a1318f6d429b40c380e8c100401a8cdfba
+  summary: 'Table 2: Proposed Benefit Structure under PSSN II per month. Fixed Direct support/Productive transfer: 12,000 TZS, cap 12,000. Fixed Child grant: 5,000 TZS, cap 5,000. Fixed Disability grant: 5,000 TZS, cap 5,000. Fixed HCT Infant: 5,000 TZS, cap 5,000. Variable HCT Child lower primary (1-4): 2,000 TZS; Child upper primary (5-7): 4,000 TZS; primary cap 12,000. Variable HCT Child lower secondary: 6,000 TZS; Child high secondary: 8,000 TZS; secondary cap 16,000. Minimum 12,000; Maximum 55,000. Public Works transfer 3000*10 = 30,000. Livelihood grant 500,000.'
+  deferred_outputs:
+  - output: tz:policies/tasaf-pssn/pssn-ii-benefit-structure(b)#goods_works_non_consulting_services_consultants_services_training_and_operating_costs
+    reason: The checklist item cites a financing/disbursement cost category, but the source slice does not state a beneficiary-level executable entitlement, eligibility condition, or formula for that administrative cost category beyond project financing allocation context.
+rules:
+- name: direct_support_or_productive_transfer_amount
+  kind: parameter
+  dtype: Money
+  unit: TZS
+  source: tz/policy/tasaf-pssn/pssn-ii-benefit-structure
+  metadata:
+    proof:
+      atoms:
+      - path: versions[0].formula
+        kind: amount
+        source:
+          corpus_citation_path: tz/policy/tasaf-pssn/pssn-ii-benefit-structure
+          excerpt: Direct support/ Productive transfer* 12,000
+  versions:
+  - effective_from: '2019-08-16'
+    formula: '12000'
+- name: direct_support_or_productive_transfer_cap
+  kind: parameter
+  dtype: Money
+  unit: TZS
+  source: tz/policy/tasaf-pssn/pssn-ii-benefit-structure
+  metadata:
+    proof:
+      atoms:
+      - path: versions[0].formula
+        kind: amount
+        source:
+          corpus_citation_path: tz/policy/tasaf-pssn/pssn-ii-benefit-structure
+          excerpt: Enrollment in the Program 12,000
+  versions:
+  - effective_from: '2019-08-16'
+    formula: '12000'
+- name: child_grant_amount
+  kind: parameter
+  dtype: Money
+  unit: TZS
+  source: tz/policy/tasaf-pssn/pssn-ii-benefit-structure
+  metadata:
+    proof:
+      atoms:
+      - path: versions[0].formula
+        kind: amount
+        source:
+          corpus_citation_path: tz/policy/tasaf-pssn/pssn-ii-benefit-structure
+          excerpt: Child grant 5,000
+  versions:
+  - effective_from: '2019-08-16'
+    formula: '5000'
+- name: child_grant_cap
+  kind: parameter
+  dtype: Money
+  unit: TZS
+  source: tz/policy/tasaf-pssn/pssn-ii-benefit-structure
+  metadata:
+    proof:
+      atoms:
+      - path: versions[0].formula
+        kind: amount
+        source:
+          corpus_citation_path: tz/policy/tasaf-pssn/pssn-ii-benefit-structure
+          excerpt: At least one child less than 18 years old 5,000
+  versions:
+  - effective_from: '2019-08-16'
+    formula: '5000'
+- name: disability_grant_amount
+  kind: parameter
+  dtype: Money
+  unit: TZS
+  source: tz/policy/tasaf-pssn/pssn-ii-benefit-structure
+  metadata:
+    proof:
+      atoms:
+      - path: versions[0].formula
+        kind: amount
+        source:
+          corpus_citation_path: tz/policy/tasaf-pssn/pssn-ii-benefit-structure
+          excerpt: Disability grant 5,000
+  versions:
+  - effective_from: '2019-08-16'
+    formula: '5000'
+- name: disability_grant_cap
+  kind: parameter
+  dtype: Money
+  unit: TZS
+  source: tz/policy/tasaf-pssn/pssn-ii-benefit-structure
+  metadata:
+    proof:
+      atoms:
+      - path: versions[0].formula
+        kind: amount
+        source:
+          corpus_citation_path: tz/policy/tasaf-pssn/pssn-ii-benefit-structure
+          excerpt: Member with disability 5,000
+  versions:
+  - effective_from: '2019-08-16'
+    formula: '5000'
+- name: infant_human_capital_transfer_amount
+  kind: parameter
+  dtype: Money
+  unit: TZS
+  source: tz/policy/tasaf-pssn/pssn-ii-benefit-structure
+  metadata:
+    proof:
+      atoms:
+      - path: versions[0].formula
+        kind: amount
+        source:
+          corpus_citation_path: tz/policy/tasaf-pssn/pssn-ii-benefit-structure
+          excerpt: 'HCT: Infant 5,000'
+  versions:
+  - effective_from: '2019-08-16'
+    formula: '5000'
+- name: infant_human_capital_transfer_cap
+  kind: parameter
+  dtype: Money
+  unit: TZS
+  source: tz/policy/tasaf-pssn/pssn-ii-benefit-structure
+  metadata:
+    proof:
+      atoms:
+      - path: versions[0].formula
+        kind: amount
+        source:
+          corpus_citation_path: tz/policy/tasaf-pssn/pssn-ii-benefit-structure
+          excerpt: 0- 5 years health 5,000
+  versions:
+  - effective_from: '2019-08-16'
+    formula: '5000'
+- name: lower_primary_child_human_capital_transfer_amount
+  kind: parameter
+  dtype: Money
+  unit: TZS
+  source: tz/policy/tasaf-pssn/pssn-ii-benefit-structure
+  metadata:
+    proof:
+      atoms:
+      - path: versions[0].formula
+        kind: amount
+        source:
+          corpus_citation_path: tz/policy/tasaf-pssn/pssn-ii-benefit-structure
+          excerpt: 'HCT: Child- lower primary (1-4) 2,000'
+  versions:
+  - effective_from: '2019-08-16'
+    formula: '2000'
+- name: upper_primary_child_human_capital_transfer_amount
+  kind: parameter
+  dtype: Money
+  unit: TZS
+  source: tz/policy/tasaf-pssn/pssn-ii-benefit-structure
+  metadata:
+    proof:
+      atoms:
+      - path: versions[0].formula
+        kind: amount
+        source:
+          corpus_citation_path: tz/policy/tasaf-pssn/pssn-ii-benefit-structure
+          excerpt: 'HCT: Child – Upper primary (5-7) 4,000'
+  versions:
+  - effective_from: '2019-08-16'
+    formula: '4000'
+- name: primary_human_capital_transfer_cap
+  kind: parameter
+  dtype: Money
+  unit: TZS
+  source: tz/policy/tasaf-pssn/pssn-ii-benefit-structure
+  metadata:
+    proof:
+      atoms:
+      - path: versions[0].formula
+        kind: amount
+        source:
+          corpus_citation_path: tz/policy/tasaf-pssn/pssn-ii-benefit-structure
+          excerpt: Primary school 12,000
+  versions:
+  - effective_from: '2019-08-16'
+    formula: '12000'
+- name: lower_secondary_child_human_capital_transfer_amount
+  kind: parameter
+  dtype: Money
+  unit: TZS
+  source: tz/policy/tasaf-pssn/pssn-ii-benefit-structure
+  metadata:
+    proof:
+      atoms:
+      - path: versions[0].formula
+        kind: amount
+        source:
+          corpus_citation_path: tz/policy/tasaf-pssn/pssn-ii-benefit-structure
+          excerpt: 'HCT: Child lower secondary 6,000'
+  versions:
+  - effective_from: '2019-08-16'
+    formula: '6000'
+- name: upper_secondary_child_human_capital_transfer_amount
+  kind: parameter
+  dtype: Money
+  unit: TZS
+  source: tz/policy/tasaf-pssn/pssn-ii-benefit-structure
+  metadata:
+    proof:
+      atoms:
+      - path: versions[0].formula
+        kind: amount
+        source:
+          corpus_citation_path: tz/policy/tasaf-pssn/pssn-ii-benefit-structure
+          excerpt: 'HCT: Child high secondary 8,000'
+  versions:
+  - effective_from: '2019-08-16'
+    formula: '8000'
+- name: secondary_human_capital_transfer_cap
+  kind: parameter
+  dtype: Money
+  unit: TZS
+  source: tz/policy/tasaf-pssn/pssn-ii-benefit-structure
+  metadata:
+    proof:
+      atoms:
+      - path: versions[0].formula
+        kind: amount
+        source:
+          corpus_citation_path: tz/policy/tasaf-pssn/pssn-ii-benefit-structure
+          excerpt: Lower secondary 16,000
+  versions:
+  - effective_from: '2019-08-16'
+    formula: '16000'
+- name: monthly_cash_transfer_minimum
+  kind: parameter
+  dtype: Money
+  unit: TZS
+  source: tz/policy/tasaf-pssn/pssn-ii-benefit-structure
+  metadata:
+    proof:
+      atoms:
+      - path: versions[0].formula
+        kind: amount
+        source:
+          corpus_citation_path: tz/policy/tasaf-pssn/pssn-ii-benefit-structure
+          excerpt: minimum of TZS 12,000
+  versions:
+  - effective_from: '2019-08-16'
+    formula: '12000'
+- name: monthly_cash_transfer_maximum
+  kind: parameter
+  dtype: Money
+  unit: TZS
+  source: tz/policy/tasaf-pssn/pssn-ii-benefit-structure
+  metadata:
+    proof:
+      atoms:
+      - path: versions[0].formula
+        kind: amount
+        source:
+          corpus_citation_path: tz/policy/tasaf-pssn/pssn-ii-benefit-structure
+          excerpt: maximum of TZS 55,000
+  versions:
+  - effective_from: '2019-08-16'
+    formula: '55000'
+- name: public_works_daily_transfer_rate
+  kind: parameter
+  dtype: Money
+  unit: TZS
+  source: tz/policy/tasaf-pssn/pssn-ii-benefit-structure
+  metadata:
+    proof:
+      atoms:
+      - path: versions[0].formula
+        kind: amount
+        source:
+          corpus_citation_path: tz/policy/tasaf-pssn/pssn-ii-benefit-structure
+          excerpt: daily transfer rate will be 3,000 TZS
+  versions:
+  - effective_from: '2019-08-16'
+    formula: '3000'
+- name: public_works_monthly_paid_days
+  kind: parameter
+  dtype: Count
+  source: tz/policy/tasaf-pssn/pssn-ii-benefit-structure
+  metadata:
+    proof:
+      atoms:
+      - path: versions[0].formula
+        kind: parameter
+        source:
+          corpus_citation_path: tz/policy/tasaf-pssn/pssn-ii-benefit-structure
+          excerpt: Public Works transfer 3000*10 = 30,000
+  versions:
+  - effective_from: '2019-08-16'
+    formula: '10'
+- name: public_works_monthly_transfer_amount
+  kind: parameter
+  dtype: Money
+  unit: TZS
+  source: tz/policy/tasaf-pssn/pssn-ii-benefit-structure
+  metadata:
+    proof:
+      atoms:
+      - path: versions[0].formula
+        kind: formula
+        source:
+          corpus_citation_path: tz/policy/tasaf-pssn/pssn-ii-benefit-structure
+          excerpt: Public Works transfer 3000*10 = 30,000
+  versions:
+  - effective_from: '2019-08-16'
+    formula: public_works_daily_transfer_rate * public_works_monthly_paid_days
+- name: livelihood_grant_maximum
+  kind: parameter
+  dtype: Money
+  unit: TZS
+  source: tz/policy/tasaf-pssn/pssn-ii-benefit-structure
+  metadata:
+    proof:
+      atoms:
+      - path: versions[0].formula
+        kind: amount
+        source:
+          corpus_citation_path: tz/policy/tasaf-pssn/pssn-ii-benefit-structure
+          excerpt: will not exceed TZS 500,000
+  versions:
+  - effective_from: '2019-08-16'
+    formula: '500000'
+- name: monthly_foundational_cash_transfer_before_overall_cap
+  kind: derived
+  entity: Household
+  dtype: Money
+  period: Month
+  unit: TZS
+  source: tz/policy/tasaf-pssn/pssn-ii-benefit-structure
+  metadata:
+    proof:
+      atoms:
+      - path: versions[0].formula
+        kind: formula
+        source:
+          corpus_citation_path: tz/policy/tasaf-pssn/pssn-ii-benefit-structure
+          excerpt: three types of benefits
+  versions:
+  - effective_from: '2019-08-16'
+    formula: |-
+      (if household_receives_direct_support_or_productive_transfer: min(direct_support_or_productive_transfer_amount, direct_support_or_productive_transfer_cap) else: 0)
+      + (if household_includes_child_under_18: min(child_grant_amount, child_grant_cap) else: 0)
+      + (if household_includes_person_with_disability: min(disability_grant_amount, disability_grant_cap) else: 0)
+      + (if household_has_compliant_child_aged_0_to_5: min(infant_human_capital_transfer_amount, infant_human_capital_transfer_cap) else: 0)
+      + min(primary_human_capital_transfer_cap, (lower_primary_child_count_with_required_attendance * lower_primary_child_human_capital_transfer_amount) + (upper_primary_child_count_with_required_attendance * upper_primary_child_human_capital_transfer_amount))
+      + min(secondary_human_capital_transfer_cap, (lower_secondary_child_count_with_required_attendance * lower_secondary_child_human_capital_transfer_amount) + (upper_secondary_child_count_with_required_attendance * upper_secondary_child_human_capital_transfer_amount))
+- name: monthly_foundational_cash_transfer
+  kind: derived
+  entity: Household
+  dtype: Money
+  period: Month
+  unit: TZS
+  source: tz/policy/tasaf-pssn/pssn-ii-benefit-structure
+  metadata:
+    proof:
+      atoms:
+      - path: versions[0].formula
+        kind: formula
+        source:
+          corpus_citation_path: tz/policy/tasaf-pssn/pssn-ii-benefit-structure
+          excerpt: minimum of TZS 12,000
+      - path: versions[0].formula
+        kind: formula
+        source:
+          corpus_citation_path: tz/policy/tasaf-pssn/pssn-ii-benefit-structure
+          excerpt: maximum of TZS 55,000
+  versions:
+  - effective_from: '2019-08-16'
+    formula: min(monthly_cash_transfer_maximum, max(monthly_cash_transfer_minimum, monthly_foundational_cash_transfer_before_overall_cap))
+- name: monthly_cash_plus_public_works_transfer
+  kind: derived
+  entity: Household
+  dtype: Money
+  period: Month
+  unit: TZS
+  source: tz/policy/tasaf-pssn/pssn-ii-benefit-structure
+  metadata:
+    proof:
+      atoms:
+      - path: versions[0].formula
+        kind: formula
+        source:
+          corpus_citation_path: tz/policy/tasaf-pssn/pssn-ii-benefit-structure
+          excerpt: Public Works transfer 3000*10 = 30,000
+      - path: versions[0].formula
+        kind: formula
+        source:
+          corpus_citation_path: tz/policy/tasaf-pssn/pssn-ii-benefit-structure
+          excerpt: once they start receiving PW transfers, the productive transfer will stop
+  versions:
+  - effective_from: '2019-08-16'
+    formula: 'monthly_foundational_cash_transfer + (if household_participates_in_public_works: public_works_monthly_transfer_amount else: 0)'
+- name: livelihood_grant_payable
+  kind: derived
+  entity: Household
+  dtype: Money
+  period: Month
+  unit: TZS
+  source: tz/policy/tasaf-pssn/pssn-ii-benefit-structure
+  metadata:
+    proof:
+      atoms:
+      - path: versions[0].formula
+        kind: formula
+        source:
+          corpus_citation_path: tz/policy/tasaf-pssn/pssn-ii-benefit-structure
+          excerpt: will not exceed TZS 500,000
+  versions:
+  - effective_from: '2019-08-16'
+    formula: 'if household_approved_for_livelihood_grant: min(requested_livelihood_grant_amount, livelihood_grant_maximum) else: 0'
+- name: pssn_beneficiary_household_eligible
+  kind: derived
+  entity: Household
+  dtype: Judgment
+  period: Month
+  source: TASAF PSSN II benefit structure (enrolment in the Programme)
+  metadata:
+    proof:
+      atoms:
+      - path: versions[0].formula
+        kind: predicate
+        source:
+          corpus_citation_path: tz/policy/tasaf-pssn/pssn-ii-benefit-structure
+          excerpt: Enrollment in the Program
+  versions:
+  - effective_from: '2023-01-01'
+    formula: household_is_tasaf_registered_extremely_poor_household_enrolled_in_pssn
