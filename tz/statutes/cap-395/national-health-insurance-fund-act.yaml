@@ -1,0 +1,72 @@
+format: rulespec/v1
+module:
+  proof_validation:
+    required: true
+  source_verification:
+    corpus_citation_path: tz/statute/cap-395/national-health-insurance-fund-act
+    source_sha256: 63b68eff57bac2cc9464fad4a93d51ff09818396aa09b3d23f9609de788dd2fa
+  summary: 'National Health Insurance Fund Act, Cap. 395 R.E. 2023, s. 9: a monthly contribution of three per centum of the employee''s salary by the employer plus another three per centum (3% employee + 3% employer = 6% of gross); for members of the Police Force, Prison Services, Immigration Services and Fire and Rescue Services the Treasury deposits six and a quarter per centum. NHIF contribution instrument (TAZMOD tsceehl/tscerhl).'
+rules:
+- name: ordinary_employee_contribution_rate
+  kind: parameter
+  dtype: Rate
+  source: National Health Insurance Fund Act, s. 9(1)-(2)
+  metadata:
+    proof:
+      atoms:
+      - path: versions[0].formula
+        kind: parameter
+        source:
+          corpus_citation_path: tz/statute/cap-395/national-health-insurance-fund-act
+          excerpt: three per centum of his employee’s salary
+  versions:
+  - effective_from: '2020-07-01'
+    formula: '0.03'
+- name: ordinary_employer_contribution_rate
+  kind: parameter
+  dtype: Rate
+  source: National Health Insurance Fund Act, s. 9(1)-(2)
+  metadata:
+    proof:
+      atoms:
+      - path: versions[0].formula
+        kind: parameter
+        source:
+          corpus_citation_path: tz/statute/cap-395/national-health-insurance-fund-act
+          excerpt: another three per centum contribution from the employer
+  versions:
+  - effective_from: '2020-07-01'
+    formula: '0.03'
+- name: special_services_total_contribution_rate
+  kind: parameter
+  dtype: Rate
+  source: National Health Insurance Fund Act, s. 9(3)-(4)
+  metadata:
+    proof:
+      atoms:
+      - path: versions[0].formula
+        kind: parameter
+        source:
+          corpus_citation_path: tz/statute/cap-395/national-health-insurance-fund-act
+          excerpt: six and a quarter per centum
+  versions:
+  - effective_from: '2020-07-01'
+    formula: '0.0625'
+- name: statutory_monthly_contribution
+  kind: derived
+  entity: Person
+  dtype: Money
+  unit: TZS
+  period: Month
+  source: National Health Insurance Fund Act, s. 9(1)-(4)
+  metadata:
+    proof:
+      atoms:
+      - path: versions[0].formula
+        kind: formula
+        source:
+          corpus_citation_path: tz/statute/cap-395/national-health-insurance-fund-act
+          excerpt: An employer shall make a monthly contribution to the Fund
+  versions:
+  - effective_from: '2020-07-01'
+    formula: 'if member_is_police_prison_immigration_fire_or_rescue_services: salary * special_services_total_contribution_rate else: salary * (ordinary_employee_contribution_rate + ordinary_employer_contribution_rate)'

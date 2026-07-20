@@ -1,0 +1,21 @@
+- name: ordinary member 3% + 3% of salary
+  period: 2024-01
+  input:
+    tz:statutes/cap-395/national-health-insurance-fund-act#input.salary: 1000000
+    tz:statutes/cap-395/national-health-insurance-fund-act#input.member_is_police_prison_immigration_fire_or_rescue_services: false
+  output:
+    tz:statutes/cap-395/national-health-insurance-fund-act#statutory_monthly_contribution: 60000
+- name: special services member six and a quarter per centum
+  period: 2024-01
+  input:
+    tz:statutes/cap-395/national-health-insurance-fund-act#input.salary: 800000
+    tz:statutes/cap-395/national-health-insurance-fund-act#input.member_is_police_prison_immigration_fire_or_rescue_services: true
+  output:
+    tz:statutes/cap-395/national-health-insurance-fund-act#statutory_monthly_contribution: 50000
+- name: zero salary yields zero contribution
+  period: 2024-01
+  input:
+    tz:statutes/cap-395/national-health-insurance-fund-act#input.salary: 0
+    tz:statutes/cap-395/national-health-insurance-fund-act#input.member_is_police_prison_immigration_fire_or_rescue_services: false
+  output:
+    tz:statutes/cap-395/national-health-insurance-fund-act#statutory_monthly_contribution: 0
