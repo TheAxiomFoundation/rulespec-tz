@@ -1,0 +1,52 @@
+- name: 'nil-band earner: gross 3,000,000, no tax, 10% NSSF'
+  period:
+    period_kind: tax_year
+    start: '2023-07-01'
+    end: '2024-06-30'
+  input:
+    tz:statutes/cap-332/income-tax-act#input.resident_individual_total_income: 3000000
+    tz:statutes/cap-50/national-social-security-fund-act#input.wages: 3000000
+    tz:statutes/composed/tz-2023-disposable-income-pipeline#input.benefits_received: 0
+  output:
+    tz:statutes/composed/tz-2023-disposable-income-pipeline#pilot_worker_income_tax: 0
+    tz:statutes/composed/tz-2023-disposable-income-pipeline#pilot_worker_employee_social_contribution: 300000
+    tz:statutes/composed/tz-2023-disposable-income-pipeline#pilot_worker_disposable_income: 2700000
+- name: 'band-3 earner: gross 10,000,000'
+  period:
+    period_kind: tax_year
+    start: '2023-07-01'
+    end: '2024-06-30'
+  input:
+    tz:statutes/cap-332/income-tax-act#input.resident_individual_total_income: 10000000
+    tz:statutes/cap-50/national-social-security-fund-act#input.wages: 10000000
+    tz:statutes/composed/tz-2023-disposable-income-pipeline#input.benefits_received: 0
+  output:
+    tz:statutes/composed/tz-2023-disposable-income-pipeline#pilot_worker_income_tax: 1036000
+    tz:statutes/composed/tz-2023-disposable-income-pipeline#pilot_worker_employee_social_contribution: 1000000
+    tz:statutes/composed/tz-2023-disposable-income-pipeline#pilot_worker_disposable_income: 7964000
+- name: 'with benefits: gross 12,000,000 + 300,000 benefits'
+  period:
+    period_kind: tax_year
+    start: '2023-07-01'
+    end: '2024-06-30'
+  input:
+    tz:statutes/cap-332/income-tax-act#input.resident_individual_total_income: 12000000
+    tz:statutes/cap-50/national-social-security-fund-act#input.wages: 12000000
+    tz:statutes/composed/tz-2023-disposable-income-pipeline#input.benefits_received: 300000
+  output:
+    tz:statutes/composed/tz-2023-disposable-income-pipeline#pilot_worker_income_tax: 1536000
+    tz:statutes/composed/tz-2023-disposable-income-pipeline#pilot_worker_employee_social_contribution: 1200000
+    tz:statutes/composed/tz-2023-disposable-income-pipeline#pilot_worker_disposable_income: 9564000
+- name: zero income
+  period:
+    period_kind: tax_year
+    start: '2023-07-01'
+    end: '2024-06-30'
+  input:
+    tz:statutes/cap-332/income-tax-act#input.resident_individual_total_income: 0
+    tz:statutes/cap-50/national-social-security-fund-act#input.wages: 0
+    tz:statutes/composed/tz-2023-disposable-income-pipeline#input.benefits_received: 0
+  output:
+    tz:statutes/composed/tz-2023-disposable-income-pipeline#pilot_worker_income_tax: 0
+    tz:statutes/composed/tz-2023-disposable-income-pipeline#pilot_worker_employee_social_contribution: 0
+    tz:statutes/composed/tz-2023-disposable-income-pipeline#pilot_worker_disposable_income: 0

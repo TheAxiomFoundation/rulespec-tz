@@ -1,0 +1,100 @@
+- name: resident individual tax in nil band
+  period:
+    period_kind: tax_year
+    start: '2024-01-01'
+    end: '2024-12-31'
+  input:
+    tz:statutes/cap-332/income-tax-act#input.resident_individual_total_income: 3000000
+  output:
+    tz:statutes/cap-332/income-tax-act#resident_individual_income_tax_band: 0
+    tz:statutes/cap-332/income-tax-act#resident_individual_income_tax_before_credits: 0
+- name: resident individual tax in middle band
+  period:
+    period_kind: tax_year
+    start: '2024-01-01'
+    end: '2024-12-31'
+  input:
+    tz:statutes/cap-332/income-tax-act#input.resident_individual_total_income: 8000000
+  output:
+    tz:statutes/cap-332/income-tax-act#resident_individual_income_tax_band: 2
+    tz:statutes/cap-332/income-tax-act#resident_individual_income_tax_before_credits: 592000
+- name: resident individual tax in top band
+  period:
+    period_kind: tax_year
+    start: '2024-01-01'
+    end: '2024-12-31'
+  input:
+    tz:statutes/cap-332/income-tax-act#input.resident_individual_total_income: 15000000
+  output:
+    tz:statutes/cap-332/income-tax-act#resident_individual_income_tax_band: 4
+    tz:statutes/cap-332/income-tax-act#resident_individual_income_tax_before_credits: 2436000
+- name: compliant_turnover_between_four_and_seven_million
+  period:
+    period_kind: tax_year
+    start: '2024-01-01'
+    end: '2024-12-31'
+  input:
+    tz:statutes/cap-332/income-tax-act#input.resident_individual: true
+    tz:statutes/cap-332/income-tax-act#input.business_income_exclusively_qualifying_for_presumptive_tax: true
+    tz:statutes/cap-332/income-tax-act#input.business_income_has_source_in_united_republic: true
+    tz:statutes/cap-332/income-tax-act#input.business_turnover: 5000000
+    tz:statutes/cap-332/income-tax-act#input.individual_elects_to_disapply_presumptive_income_tax: false
+    tz:statutes/cap-332/income-tax-act#input.section_43_of_tax_administration_act_is_complied_with: true
+  output:
+    tz:statutes/cap-332/income-tax-act#presumptive_income_tax_on_business_turnover_second_schedule: 30000
+- name: noncompliant_turnover_between_four_and_seven_million
+  period:
+    period_kind: tax_year
+    start: '2024-01-01'
+    end: '2024-12-31'
+  input:
+    tz:statutes/cap-332/income-tax-act#input.resident_individual: true
+    tz:statutes/cap-332/income-tax-act#input.business_income_exclusively_qualifying_for_presumptive_tax: true
+    tz:statutes/cap-332/income-tax-act#input.business_income_has_source_in_united_republic: true
+    tz:statutes/cap-332/income-tax-act#input.business_turnover: 5000000
+    tz:statutes/cap-332/income-tax-act#input.individual_elects_to_disapply_presumptive_income_tax: false
+    tz:statutes/cap-332/income-tax-act#input.section_43_of_tax_administration_act_is_complied_with: false
+  output:
+    tz:statutes/cap-332/income-tax-act#presumptive_income_tax_on_business_turnover_second_schedule: 100000
+- name: compliant_turnover_between_seven_and_eleven_million
+  period:
+    period_kind: tax_year
+    start: '2024-01-01'
+    end: '2024-12-31'
+  input:
+    tz:statutes/cap-332/income-tax-act#input.resident_individual: true
+    tz:statutes/cap-332/income-tax-act#input.business_income_exclusively_qualifying_for_presumptive_tax: true
+    tz:statutes/cap-332/income-tax-act#input.business_income_has_source_in_united_republic: true
+    tz:statutes/cap-332/income-tax-act#input.business_turnover: 8000000
+    tz:statutes/cap-332/income-tax-act#input.individual_elects_to_disapply_presumptive_income_tax: false
+    tz:statutes/cap-332/income-tax-act#input.section_43_of_tax_administration_act_is_complied_with: true
+  output:
+    tz:statutes/cap-332/income-tax-act#presumptive_income_tax_on_business_turnover_second_schedule: 120000
+- name: elected_out_of_presumptive_tax
+  period:
+    period_kind: tax_year
+    start: '2024-01-01'
+    end: '2024-12-31'
+  input:
+    tz:statutes/cap-332/income-tax-act#input.resident_individual: true
+    tz:statutes/cap-332/income-tax-act#input.business_income_exclusively_qualifying_for_presumptive_tax: true
+    tz:statutes/cap-332/income-tax-act#input.business_income_has_source_in_united_republic: true
+    tz:statutes/cap-332/income-tax-act#input.business_turnover: 8000000
+    tz:statutes/cap-332/income-tax-act#input.individual_elects_to_disapply_presumptive_income_tax: true
+    tz:statutes/cap-332/income-tax-act#input.section_43_of_tax_administration_act_is_complied_with: true
+  output:
+    tz:statutes/cap-332/income-tax-act#presumptive_income_tax_on_business_turnover_second_schedule: 0
+- name: compliant top band 3.5% of whole turnover (finding candidate 2)
+  period:
+    period_kind: tax_year
+    start: '2024-01-01'
+    end: '2024-12-31'
+  input:
+    tz:statutes/cap-332/income-tax-act#input.resident_individual: true
+    tz:statutes/cap-332/income-tax-act#input.business_income_exclusively_qualifying_for_presumptive_tax: true
+    tz:statutes/cap-332/income-tax-act#input.business_income_has_source_in_united_republic: true
+    tz:statutes/cap-332/income-tax-act#input.business_turnover: 20000000
+    tz:statutes/cap-332/income-tax-act#input.individual_elects_to_disapply_presumptive_income_tax: false
+    tz:statutes/cap-332/income-tax-act#input.section_43_of_tax_administration_act_is_complied_with: true
+  output:
+    tz:statutes/cap-332/income-tax-act#presumptive_income_tax_on_business_turnover_second_schedule: 700000

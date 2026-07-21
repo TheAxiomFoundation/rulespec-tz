@@ -1,0 +1,12 @@
+# TZ_2023 single-earner disposable-income program (TAZMOD oracle slice).
+program: tz/disposable-income
+period: 2023-07
+outputs:
+- pilot_worker_income_tax
+- pilot_worker_employee_social_contribution
+- pilot_worker_disposable_income
+scope:
+  tz:
+  - tz/statutes/composed/tz-2023-disposable-income-pipeline
+  - tz/statutes/cap-332/income-tax-act
+  - tz/statutes/cap-50/national-social-security-fund-act
