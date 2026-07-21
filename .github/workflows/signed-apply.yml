@@ -428,6 +428,10 @@ jobs:
             cp -a "$genroot/$p" "$out/$p"
           done
           echo "$jurs" > "$out/.signed-jurisdictions"
+          # Record the exact source commit this generation ran against so the
+          # push job can pin its base to it (defends against main advancing
+          # between the two jobs; see the sol-review finding on PR #21).
+          git -C "$GITHUB_WORKSPACE" rev-parse HEAD > "$out/.signed-source-sha"
           ls -R "$out" | head -40
 
       - name: Upload signed content artifact
@@ -483,7 +487,7 @@ jobs:
           while IFS= read -r -d '' f; do
             rel="${f#"$src"/}"
             case "$rel" in
-              .signed-jurisdictions) continue ;;
+              .signed-jurisdictions|.signed-source-sha) continue ;;
               .github/*|*/.github/*|scripts/*|*/scripts/*|_axiom/*|*/_axiom/*)
                 echo "::error::disallowed path in artifact: $rel"; exit 1 ;;
               .git/*|*/.git/*|*/.git|.git)
@@ -510,7 +514,20 @@ jobs:
           if find "$src/.axiom" -type f 2>/dev/null | grep -vE '/.axiom/encoding-manifests/' | grep -q .; then
             echo "::error::.axiom artifact content outside encoding-manifests"; exit 1
           fi
-          rsync -a "$src"/ "$GITHUB_WORKSPACE"/ --exclude '.signed-jurisdictions'
+          # Pin the workspace to the encode job's exact source commit before
+          # overlaying content: the default branch may have advanced between
+          # the encode and push jobs, and rsyncing an older jurisdiction tree
+          # over newer main would stage unrelated reversions on allowed paths
+          # that every downstream gate accepts (sol adversarial-review finding,
+          # PR #21). Branching from the encode-time SHA makes the signed
+          # branch's diff exactly the encoder's delta.
+          src_sha="$(tr -d '[:space:]' < "$src/.signed-source-sha")"
+          echo "$src_sha" | grep -qE '^[0-9a-f]{40}$' \
+            || { echo "::error::invalid .signed-source-sha in artifact"; exit 1; }
+          git cat-file -e "$src_sha^{commit}" \
+            || { echo "::error::artifact source sha $src_sha not in fetched history"; exit 1; }
+          git checkout --detach --quiet "$src_sha"
+          rsync -a "$src"/ "$GITHUB_WORKSPACE"/ --exclude '.signed-jurisdictions' --exclude '.signed-source-sha'
 
       - name: Commit, push, and open the re-review PR
         shell: bash
@@ -527,9 +544,19 @@ jobs:
           branch="signed/$SLUG"
           git checkout -b "$branch"
           # Stage only the content-allowlisted paths, never `-A`: .github and any
-          # other tree stays exactly as origin/main has it.
-          git add ':(glob)*/**' '.axiom/encoding-manifests' docs data/coverage \
-            known-validation-gaps.yaml known-missing-money-atoms.yaml oracle-coverage-pending.yaml 2>/dev/null || true
+          # other tree stays exactly as origin/main has it. `git add` fails fast
+          # on a pathspec that matches nothing (e.g. a mirror with no docs/),
+          # staging NOTHING and masking it under `|| true` — so add the
+          # jurisdiction glob (always present post-gate: the tracked .gitkeep
+          # under each content root matches it) plus only the optional meta
+          # paths that actually exist.
+          add_paths=(':(glob)*/**')
+          for p in .axiom/encoding-manifests docs data/coverage \
+                   known-validation-gaps.yaml known-missing-money-atoms.yaml \
+                   oracle-coverage-pending.yaml; do
+            [ -e "$p" ] && add_paths+=("$p")
+          done
+          git add -- "${add_paths[@]}"
           git reset -q -- .github _axiom scripts 2>/dev/null || true
           git diff --cached --quiet && { echo "::error::no signed content to commit"; exit 1; }
           # Fail closed if any protected surface or embedded-repo path sneaked in.
