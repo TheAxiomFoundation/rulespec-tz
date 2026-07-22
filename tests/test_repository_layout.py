@@ -10,7 +10,7 @@ ROOT = Path(__file__).resolve().parents[1]
 JURISDICTION_DIR_RE = re.compile(r"^[a-z]{2}(-[a-z0-9-]+)*$")
 CONTENT_DIRS = ("statutes", "regulations", "policies", "legislation")
 IGNORED_DIRS = {".git", ".pytest_cache", ".ruff_cache", ".venv", "__pycache__"}
-ALLOWED_ROOT_DIRS = {".axiom", ".github", "bulk", "data", "programs", "tests", "tz"}
+ALLOWED_ROOT_DIRS = {".axiom", ".github", "bulk", "data", "programs", "tests", "tz", "tz-znz"}
 ALLOWED_ROOT_FILES = {
     ".gitignore",
     "CLAUDE.md",
@@ -52,10 +52,10 @@ def iter_rulespec_files() -> list[Path]:
     return sorted(files)
 
 
-def test_only_tanzania_namespace_present() -> None:
-    """Tanzania mainland scope: the only jurisdiction directory is tz/."""
+def test_only_tanzania_namespaces_present() -> None:
+    """URT scope: the jurisdiction directories are tz/ (mainland) and tz-znz/ (Zanzibar)."""
     names = {d.name for d in jurisdiction_dirs()}
-    assert names <= {"tz"}, f"unexpected jurisdiction dirs: {names - {'tz'}}"
+    assert names <= {"tz", "tz-znz"}, f"unexpected jurisdiction dirs: {names - {'tz', 'tz-znz'}}"
 
 
 def test_tz_content_buckets_exist() -> None:

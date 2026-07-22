@@ -1,12 +1,13 @@
 # rulespec-tz Agent Notes
 
-This repo stores Tanzania (mainland) RuleSpec source registry materials, oracle references, and encoded policy rules. Zanzibar has its own revenue law and its own SOUTHMOD model and is out of scope; all encoded law lives under a single `tz/` namespace covering the mainland instruments.
+This repo stores United Republic of Tanzania RuleSpec source registry materials, oracle references, and encoded policy rules: mainland instruments under the `tz/` namespace and Zanzibar instruments under the `tz-znz/` namespace (the rulespec-us federation pattern). Union law (the Income Tax Act Cap. 332 chain, the TASAF PSSN transfers) is encoded once under `tz/` and applies to both jurisdictions.
 
 ## Scope
 
 - `tz/statutes/`: Tanzanian Acts — the Income Tax Act (Cap. 332) as amended by the annual Finance Acts (First Schedule individual rates and the presumptive regime), the PSSSF Act, 2018, the NSSF Act (Cap. 50), the NHIF Act (Cap. 395), the Value Added Tax Act, 2014 (Cap. 148), the Excise (Management and Tariff) Act (Cap. 147) as amended, and other primary law needed for tax-benefit modeling.
 - `tz/regulations/`: regulations and Government Notices made under the Acts (contribution-rate instruments, excise amendment orders).
 - `tz/policies/`: TRA practice notes captured as verified reproductions where a primary print is not digitized, and social-protection programme rules (the TASAF Productive Social Safety Net transfers) set administratively.
+- `tz-znz/statutes/`, `tz-znz/regulations/`, `tz-znz/policies/`: Zanzibar instruments — the VAT Act 4/1998, the Excise Duty Act 8/2017, the ZSSF Act 2/2005 and its amending instruments (Written Laws (Miscellaneous Amendment) Act 10/2022), and administratively set programmes (the Zanzibar Universal Pension Scheme / Pencheni Jamii, corpus tranche 2). ZANMOD v1.1 (2019–24) is the Zanzibar validation frame.
 - `programs/`: declarative compose specs (one per jurisdiction/program/period).
 - `data/coverage/`, `data/oracles/`: coverage backlog and comparison references. These are never legal authority.
 
