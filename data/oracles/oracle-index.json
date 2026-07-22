@@ -1,7 +1,7 @@
 {
   "generated_at": "2026-07-09",
   "jurisdiction": "tz",
-  "focus": "Tanzania mainland tax-benefit surface: individual income tax (PAYE and accounts bases), presumptive income tax, PSSSF/NSSF pension contributions, NHIF health contributions, VAT, excise duties, and the TASAF Productive Social Safety Net transfers.",
+  "focus": "Tanzania mainland tax-benefit surface: individual income tax (PAYE and accounts bases), presumptive income tax, PSSSF/NSSF pension contributions, NHIF health contributions, VAT, excise duties, and the TASAF Productive Social Safety Net transfers; plus the Zanzibar (tz-znz) surface: Zanzibar VAT, Zanzibar excise (tobacco and kerosene rows), ZSSF contributions, and the ZUPS universal pension.",
   "purpose": "Household-level comparison-oracle and supporting-source references for Tanzania Axiom coverage. None of these are legal authority.",
   "oracle_scope": "A RuleSpec oracle must be an executable, pinned external calculator that accepts household-level inputs and returns household-level tax-benefit outputs comparable to Axiom outputs. Aggregate simulators, distributional reports, parameter documentation, and public model summaries are supporting references only, not oracles.",
   "oracles": [
@@ -35,6 +35,30 @@
         "validation_system": "TZ_2023 (rules in force 30 June 2023)"
       },
       "bundle_sha256": "741855bd23cf4c4a0a61a80def06a078fd3f0551a452b5853a2e46c7e2486a5f"
+    },
+    {
+      "id": "zanmod",
+      "name": "ZANMOD",
+      "url": "https://www.wider.unu.edu/about/zanmod-simulating-tax-and-benefit-policies-development-zanzibar",
+      "local_path": "~/.axiom/oracles/southmod/bundle/ (licensed, non-redistributable; never committed)",
+      "commit": null,
+      "model": "ZANMOD v1.1 (SOUTHMOD; EUROMOD platform)",
+      "dataset": "Zanzibar HBS 2019/20-based input microdata (shipped with the licensed bundle where included)",
+      "role": "Household-level tax-benefit comparison oracle for Zanzibar. ZANMOD is the SOUTHMOD tax-benefit microsimulation model for Zanzibar (UNU-WIDER; launched November 2023). Policy years 2019-24. Mainland Tanzania has its own model, TAZMOD, out of this repository's scope.",
+      "coverage": [
+        "zanzibar_vat",
+        "zanzibar_excise_duty",
+        "zssf_contributions",
+        "zups_universal_pension",
+        "household_disposable_income"
+      ],
+      "authority": "wiring_pending",
+      "availability_check": {
+        "checked_at": "2026-07-21",
+        "status": "wiring_pending",
+        "detail": "The locally held licensed SOUTHMOD bundle (see rulespec-tz oracle-index: SOUTHMOD_A4.0, EUROMOD runtime proven on the Ghana and Rwanda lanes) must be inventoried for ZANMOD ZN systems before wiring; ZANMOD launched November 2023, so the bundled vintage may or may not carry it. If absent, request the ZANMOD model through the SOUTHMOD access process under the existing Adhesion Agreement. Validation frame: ZANMOD v1.1, policy years 2019-24 (report CR-ZANMOD-v1.1)."
+      },
+      "bundle_sha256": null
     }
   ]
 }
