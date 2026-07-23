@@ -1,0 +1,60 @@
+- name: foundational cash transfer only
+  period: 2019-09
+  input:
+    tz:policies/tasaf-pssn/pssn-ii-benefit-structure#input.household_receives_cash_transfer: true
+    tz:policies/tasaf-pssn/pssn-ii-benefit-structure#input.household_has_child_under_18: false
+    tz:policies/tasaf-pssn/pssn-ii-benefit-structure#input.household_has_member_with_disability: false
+    tz:policies/tasaf-pssn/pssn-ii-benefit-structure#input.household_has_compliant_child_aged_0_to_5: false
+    tz:policies/tasaf-pssn/pssn-ii-benefit-structure#input.lower_primary_children_compliant_with_attendance: 0
+    tz:policies/tasaf-pssn/pssn-ii-benefit-structure#input.upper_primary_children_compliant_with_attendance: 0
+    tz:policies/tasaf-pssn/pssn-ii-benefit-structure#input.lower_secondary_children_compliant_with_attendance: 0
+    tz:policies/tasaf-pssn/pssn-ii-benefit-structure#input.upper_secondary_children_compliant_with_attendance: 0
+    tz:policies/tasaf-pssn/pssn-ii-benefit-structure#input.household_participates_in_public_works: false
+    tz:policies/tasaf-pssn/pssn-ii-benefit-structure#input.household_participated_regularly_in_training: false
+    tz:policies/tasaf-pssn/pssn-ii-benefit-structure#input.household_is_economically_active: false
+    tz:policies/tasaf-pssn/pssn-ii-benefit-structure#input.household_has_accumulated_savings: false
+    tz:policies/tasaf-pssn/pssn-ii-benefit-structure#input.household_has_viable_business_plan: false
+  output:
+    tz:policies/tasaf-pssn/pssn-ii-benefit-structure#monthly_cash_transfer: 12000
+    tz:policies/tasaf-pssn/pssn-ii-benefit-structure#standard_monthly_public_works_transfer: 0
+    tz:policies/tasaf-pssn/pssn-ii-benefit-structure#livelihood_grant_payable: 0
+- name: layered cash transfer reaches household maximum
+  period: 2019-09
+  input:
+    tz:policies/tasaf-pssn/pssn-ii-benefit-structure#input.household_receives_cash_transfer: true
+    tz:policies/tasaf-pssn/pssn-ii-benefit-structure#input.household_has_child_under_18: true
+    tz:policies/tasaf-pssn/pssn-ii-benefit-structure#input.household_has_member_with_disability: true
+    tz:policies/tasaf-pssn/pssn-ii-benefit-structure#input.household_has_compliant_child_aged_0_to_5: true
+    tz:policies/tasaf-pssn/pssn-ii-benefit-structure#input.lower_primary_children_compliant_with_attendance: 2
+    tz:policies/tasaf-pssn/pssn-ii-benefit-structure#input.upper_primary_children_compliant_with_attendance: 2
+    tz:policies/tasaf-pssn/pssn-ii-benefit-structure#input.lower_secondary_children_compliant_with_attendance: 1
+    tz:policies/tasaf-pssn/pssn-ii-benefit-structure#input.upper_secondary_children_compliant_with_attendance: 2
+    tz:policies/tasaf-pssn/pssn-ii-benefit-structure#input.household_participates_in_public_works: false
+    tz:policies/tasaf-pssn/pssn-ii-benefit-structure#input.household_participated_regularly_in_training: false
+    tz:policies/tasaf-pssn/pssn-ii-benefit-structure#input.household_is_economically_active: false
+    tz:policies/tasaf-pssn/pssn-ii-benefit-structure#input.household_has_accumulated_savings: false
+    tz:policies/tasaf-pssn/pssn-ii-benefit-structure#input.household_has_viable_business_plan: false
+  output:
+    tz:policies/tasaf-pssn/pssn-ii-benefit-structure#monthly_cash_transfer: 55000
+    tz:policies/tasaf-pssn/pssn-ii-benefit-structure#standard_monthly_public_works_transfer: 0
+    tz:policies/tasaf-pssn/pssn-ii-benefit-structure#livelihood_grant_payable: 0
+- name: public works and qualified livelihood grant
+  period: 2019-09
+  input:
+    tz:policies/tasaf-pssn/pssn-ii-benefit-structure#input.household_receives_cash_transfer: false
+    tz:policies/tasaf-pssn/pssn-ii-benefit-structure#input.household_has_child_under_18: false
+    tz:policies/tasaf-pssn/pssn-ii-benefit-structure#input.household_has_member_with_disability: false
+    tz:policies/tasaf-pssn/pssn-ii-benefit-structure#input.household_has_compliant_child_aged_0_to_5: false
+    tz:policies/tasaf-pssn/pssn-ii-benefit-structure#input.lower_primary_children_compliant_with_attendance: 0
+    tz:policies/tasaf-pssn/pssn-ii-benefit-structure#input.upper_primary_children_compliant_with_attendance: 0
+    tz:policies/tasaf-pssn/pssn-ii-benefit-structure#input.lower_secondary_children_compliant_with_attendance: 0
+    tz:policies/tasaf-pssn/pssn-ii-benefit-structure#input.upper_secondary_children_compliant_with_attendance: 0
+    tz:policies/tasaf-pssn/pssn-ii-benefit-structure#input.household_participates_in_public_works: true
+    tz:policies/tasaf-pssn/pssn-ii-benefit-structure#input.household_participated_regularly_in_training: true
+    tz:policies/tasaf-pssn/pssn-ii-benefit-structure#input.household_is_economically_active: true
+    tz:policies/tasaf-pssn/pssn-ii-benefit-structure#input.household_has_accumulated_savings: true
+    tz:policies/tasaf-pssn/pssn-ii-benefit-structure#input.household_has_viable_business_plan: true
+  output:
+    tz:policies/tasaf-pssn/pssn-ii-benefit-structure#monthly_cash_transfer: 0
+    tz:policies/tasaf-pssn/pssn-ii-benefit-structure#standard_monthly_public_works_transfer: 30000
+    tz:policies/tasaf-pssn/pssn-ii-benefit-structure#livelihood_grant_payable: 500000
