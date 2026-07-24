@@ -1,0 +1,6 @@
+- name: current_value_added_tax_rates
+  period: 2023-11
+  input: {}
+  output:
+    tz:statutes/cap-148/value-added-tax-act#standard_value_added_tax_rate: 0.18
+    tz:statutes/cap-148/value-added-tax-act#zero_rated_value_added_tax_rate: 0
