@@ -55,7 +55,7 @@ FIRST_ENCODER_THAT_CHECKS_MANIFEST_ONLY_CHANGES = (
     "fa0da5e834214052cc8d9d381e25ff409dd1062f"
 )
 # The rulespec-tz commit that first pinned each skipping encoder. A test
-# reads repository-checks.yml at each one.
+# reads repository-checks.yml at each one and at its parent.
 SKIPPING_ENCODER_PIN_HISTORY = {
     "185b2457c16df11bf328fd6257a5b7fbe3fe7534": "445a410d5f1eb0fa90d5fdcaf25912eebcd1ec0d",
     "487e1b796234148e744c0f0426777621550b2c0a": "6a0375212ea217ff52b7efa78c01cf405b03f8de",
@@ -63,6 +63,10 @@ SKIPPING_ENCODER_PIN_HISTORY = {
     "029d61ef8ebcc2b781e4712d8fe0c7614e929c7c": "d6f0c38efffbfb4c9fcaaa572ddd73cbeed7eba3",
     "b9d376684cfb5e86202daa3451b8fc716703ed19": "2ebb2c9c0121514efd94ea19161ae13311ba7568",
 }
+# rulespec-tz's main when this gate was written. A test checks that the
+# encoders listed above are exactly the ones repository-checks.yml pinned in
+# this commit's history, so the list leaves out no earlier pin.
+PIN_HISTORY_RECORDED_THROUGH = "d5e3512ef8bacfb1cc1f8744bf10e73dd4f45c49"
 
 
 def pinned_encoder_ref(root: Path = ROOT) -> str:
@@ -130,6 +134,7 @@ def test_each_skipping_encoder_has_a_recorded_pin() -> None:
     assert set(SKIPPING_ENCODER_PIN_HISTORY) == ENCODERS_THAT_SKIP_MANIFEST_ONLY_CHANGES
     for repository_commit in SKIPPING_ENCODER_PIN_HISTORY.values():
         assert COMMIT_RE.fullmatch(repository_commit), repository_commit
+    assert COMMIT_RE.fullmatch(PIN_HISTORY_RECORDED_THROUGH)
 
 
 def git(*args: str) -> subprocess.CompletedProcess[str]:
@@ -138,19 +143,46 @@ def git(*args: str) -> subprocess.CompletedProcess[str]:
     )
 
 
-def test_the_recorded_pins_match_repository_history() -> None:
+def require_git_history() -> None:
     shallow = git("rev-parse", "--is-shallow-repository")
     if shallow.returncode != 0:
         pytest.skip("The pin history needs a git checkout")
     if shallow.stdout.strip() != "false":
         pytest.skip("Historical pin commits are unavailable in a shallow checkout")
+
+
+def in_head_history(commit: str) -> bool:
+    return git("merge-base", "--is-ancestor", commit, "HEAD").returncode == 0
+
+
+def encoder_pinned_at(commit: str) -> str | None:
+    """Return the encoder repository-checks.yml pinned at commit, if any."""
+    shown = git("show", f"{commit}:{WORKFLOW.as_posix()}")
+    if shown.returncode != 0:
+        return None
+    workflow = yaml.safe_load(shown.stdout) or {}
+    validate = (workflow.get("jobs") or {}).get("validate") or {}
+    return (validate.get("with") or {}).get("axiom-encode-ref")
+
+
+def test_the_recorded_pins_match_repository_history() -> None:
+    require_git_history()
     for encoder_ref, repository_commit in SKIPPING_ENCODER_PIN_HISTORY.items():
-        ancestry = git("merge-base", "--is-ancestor", repository_commit, "HEAD")
-        assert ancestry.returncode == 0, f"{repository_commit} is not in HEAD's history"
-        workflow = git("show", f"{repository_commit}:{WORKFLOW.as_posix()}")
-        assert workflow.returncode == 0, workflow.stderr
-        inputs = yaml.safe_load(workflow.stdout)["jobs"]["validate"]["with"]
-        assert inputs["axiom-encode-ref"] == encoder_ref, repository_commit
+        assert in_head_history(repository_commit), repository_commit
+        assert encoder_pinned_at(repository_commit) == encoder_ref, repository_commit
+        # The recorded commit introduced the pin.
+        assert encoder_pinned_at(f"{repository_commit}^") != encoder_ref
+
+
+def test_the_list_names_every_encoder_pinned_through_the_recorded_commit() -> None:
+    require_git_history()
+    assert in_head_history(PIN_HISTORY_RECORDED_THROUGH)
+    log = git(
+        "log", "--format=%H", PIN_HISTORY_RECORDED_THROUGH, "--", WORKFLOW.as_posix()
+    )
+    assert log.returncode == 0, log.stderr
+    pinned = {encoder_pinned_at(commit) for commit in log.stdout.split()} - {None}
+    assert pinned == ENCODERS_THAT_SKIP_MANIFEST_ONLY_CHANGES
 
 
 def write_workflow_pin(root: Path, encoder_ref: str) -> None:
@@ -260,6 +292,8 @@ MANIFEST_CONTENTS = {
     "tz/statutes/f/rule.json": b"\xff\xfe\xfd",
     "tz/statutes/g/rule.json": b"[]",
     "tz/statutes/a/rule.test.json": b"{}",
+    # Path order compares part by part, so a/ sorts before a-b/.
+    "tz/statutes/a-b/rule.json": b"{}",
     "tz/statutes/h/.hidden.json": b"{}",
     "programs/i.json": b"{}",
     "top-level.json": b"{}",
