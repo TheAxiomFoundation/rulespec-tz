@@ -1,0 +1,110 @@
+{
+  "applied_files": [
+    {
+      "path": "tz/statutes/cap-148/value-added-tax-act.yaml",
+      "sha256": "5cbbafc6bc5808c0e6673f11c74b1c2297e339b7b705a9c96d5a05ce90db0af1"
+    },
+    {
+      "path": "tz/statutes/cap-148/value-added-tax-act.test.yaml",
+      "sha256": "f97f4f2ee371d69acec1574508557f598c60211db19f8a86ca175e66b285366b"
+    }
+  ],
+  "axiom_encode_git": {
+    "commit": "b9d376684cfb5e86202daa3451b8fc716703ed19",
+    "dirty_tracked": false,
+    "identity_source": "trusted-runtime-attestation",
+    "root": "/opt/axiom-verification/python/runtime-attestation.json",
+    "version": "0.2.1327",
+    "version_commit": "b9d376684cfb5e86202daa3451b8fc716703ed19"
+  },
+  "axiom_encode_version": "0.2.1327",
+  "backend": "openai",
+  "citation": "tz/statute/cap-148/value-added-tax-act",
+  "context_manifest_file": "/tmp/axiom-encode-encodings/_eval_workspaces/openai-gpt-5.6-terra/tz-statute-cap-148-value-added-tax-act/workspace/context-manifest.json",
+  "context_manifest_sha256": "691c4e02bb84c20373ea04b5d0527defe60dca72a6707650009d226691aa0b68",
+  "generated_at": "2026-07-24T09:52:37.262820+00:00",
+  "generated_output_file": "/tmp/axiom-encode-encodings/openai-gpt-5.6-terra/statutes/cap-148/value-added-tax-act.yaml",
+  "generated_output_root": "/tmp/axiom-encode-encodings",
+  "generated_output_sha256": "5cbbafc6bc5808c0e6673f11c74b1c2297e339b7b705a9c96d5a05ce90db0af1",
+  "generation_prompt_sha256": "6f9339b7294930ad494bfe49fd9b84df8cf1788fac9be66b467211de8c40e456",
+  "model": "gpt-5.6-terra",
+  "run_id": "3a407a56",
+  "runner": "openai-gpt-5.6-terra",
+  "schema_version": "axiom-encode/applied-rulespec/v5",
+  "signature": {
+    "algorithm": "ed25519-domain-v1",
+    "key_id": "sha256:24a78725a23b1c83cfc38bdc22f75401d8008e7a8477796b55179d1fc79c4d9a",
+    "value": "wH+iHeUmU1dQwAZhoSGGb8+rReeLbErgAiMzRciRbQf28214KdUbozruUjeWYPgY97zTKpG812mv5NSRQX2JDQ=="
+  },
+  "source_attestation": {
+    "component_rows": [
+      {
+        "body_sha256": "5bb2062846499dd42d6704766238f9ee72f07e93c8722cd4095d7d958e77eab7",
+        "citation_path": "tz/statute/cap-148/value-added-tax-act/document-1",
+        "document_class": "statute",
+        "expression_date": "2023-11-30",
+        "jurisdiction": "tz",
+        "line_number": 16,
+        "provision_file": "data/corpus/provisions/tz/statute/2026-07-09-tz-tax-and-social-security-statutes.jsonl",
+        "provision_file_sha256": "ccc6ebf2cad957421c67657a7089e539ed80061193b95f7c8e89cef45f0e51ef",
+        "record_id": "5bc32a37-0151-528c-bab2-98a0092063b4",
+        "source_as_of": "2026-07-09",
+        "source_path": "sources/tz/statute/2026-07-09-tz-tax-and-social-security-statutes/official-documents/tz-cap-148-vat-act-re2023.pdf",
+        "version": "2026-07-09-tz-tax-and-social-security-statutes"
+      }
+    ],
+    "corpus_release": "tz-rulespec-2026-07-21",
+    "corpus_release_content_sha256": "65d858e4ab78486e3dd25015923a3067897975b770e74fa5968a24274755b23b",
+    "corpus_release_selector_sha256": "e5717d61219bcb0d14597a668eb2d5c869d09dae0bb0425d834e5664528572ba",
+    "corpus_source": "local",
+    "expression_date": "2023-11-30",
+    "generation_input_sha256": "5bb2062846499dd42d6704766238f9ee72f07e93c8722cd4095d7d958e77eab7",
+    "provision_file": "data/corpus/provisions/tz/statute/2026-07-09-tz-tax-and-social-security-statutes.jsonl",
+    "provision_file_sha256": "ccc6ebf2cad957421c67657a7089e539ed80061193b95f7c8e89cef45f0e51ef",
+    "requested_corpus_citation_path": "tz/statute/cap-148/value-added-tax-act",
+    "resolved_corpus_citation_path": "tz/statute/cap-148/value-added-tax-act",
+    "resolved_text_sha256": "5bb2062846499dd42d6704766238f9ee72f07e93c8722cd4095d7d958e77eab7",
+    "row": {
+      "body_sha256": null,
+      "citation_path": "tz/statute/cap-148/value-added-tax-act",
+      "document_class": "statute",
+      "expression_date": "2023-11-30",
+      "jurisdiction": "tz",
+      "line_number": 15,
+      "provision_file": "data/corpus/provisions/tz/statute/2026-07-09-tz-tax-and-social-security-statutes.jsonl",
+      "provision_file_sha256": "ccc6ebf2cad957421c67657a7089e539ed80061193b95f7c8e89cef45f0e51ef",
+      "record_id": "144895c5-9b4b-5ffa-a7c2-eddd026b599b",
+      "source_as_of": "2026-07-09",
+      "source_path": "sources/tz/statute/2026-07-09-tz-tax-and-social-security-statutes/official-documents/tz-cap-148-vat-act-re2023.pdf",
+      "version": "2026-07-09-tz-tax-and-social-security-statutes"
+    },
+    "rulespec_root": "rulespec-tz/tz",
+    "source_as_of": "2026-07-09",
+    "source_sha256": "5bb2062846499dd42d6704766238f9ee72f07e93c8722cd4095d7d958e77eab7"
+  },
+  "tool": "axiom-encode encode --apply",
+  "trace_file": "/tmp/axiom-encode-encodings/traces/openai-gpt-5.6-terra/tz-statute-cap-148-value-added-tax-act.json",
+  "trace_sha256": "0cb5e04099c2753661ce1e8339d764700da453393a5a6b5bdfeda27c0ebb052d",
+  "validation_execution": {
+    "axiom_encode": {
+      "commit": "b9d376684cfb5e86202daa3451b8fc716703ed19",
+      "identity_source": "trusted-runtime-attestation",
+      "repository": "github.com/TheAxiomFoundation/axiom-encode",
+      "version": "0.2.1327"
+    },
+    "axiom_rules_engine": {
+      "commit": "05eac9d2f89dabe5c6673176260762cef3a58f47",
+      "repository": "github.com/TheAxiomFoundation/axiom-rules-engine"
+    },
+    "policy_pre_apply": {
+      "pre_apply_content_sha256": "ef964b058ac62f666ce3f1fe42466b9e5dfa426c8c4cf69ff64fc28dfced77b3",
+      "pre_apply_file_count": 3,
+      "rulespec_root": "rulespec-tz/tz",
+      "toolchain_contract_sha256": "d7c865dcfc459fb0278a6bc88d6346ce70419dc6dbe9fdbe67f8ecb7a5140e93",
+      "validation_waiver_set_sha256": "40b16ee902526145392d1552903d943474704598f62b6d10b9d1e39002c67c82"
+    },
+    "rulespec_dependencies": [],
+    "schema": "axiom-encode/apply-validation-execution/v1"
+  },
+  "validation_waiver_set_sha256": "40b16ee902526145392d1552903d943474704598f62b6d10b9d1e39002c67c82"
+}
